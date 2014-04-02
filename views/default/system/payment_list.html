@@ -1,0 +1,87 @@
+{js:kindeditor}
+<div class="headbar">
+	<div class="position"><span>系统</span><span>></span><span>支付管理</span><span>></span><span>支付方式</span></div>
+</div>
+<ul class="tab" name="menu">
+	<li class="selected"><a href="javascript:void(0)" hidefocus="true" onclick="select_tab('table_box_1')">使用支付方式</a></li>
+	<li><a href="javascript:void(0)" hidefocus="true" onclick="select_tab('table_box_2')">全部支付方式</a></li>
+</ul>
+<div class="content">
+	<table id="table_box_1" class="border_table" cellpadding="0" cellspacing="0">
+		<colgroup>
+			<col width="200px">
+			<col width="150px">
+			<col width="350px">
+			<col width="100px">
+		</colgroup>
+		<thead>
+			<tr>
+				<th>图标</th>
+				<th>支付名称</th>
+				<th>支付描述</th>
+				<th>操作</th>
+			</tr>
+		</thead>
+		<tbody>
+			{foreach:items=$payment_list}
+				<tr>
+					<td><img src="{webroot:plugins}{$item['logo']}" /></td>
+					<td>{$item['name']}</td>
+					<td>{$item['description']}</td>
+					<td>
+						<a href="{url:/system/payment_edit/payid/$item[id]}">配置</a> |
+						<a href="javascript:void()" onclick="confirm('您确定要删除？','payment_del({$item['id']})')">删除</a> |
+						{if:$item['status']==1}
+							<a href="{url:/system/payment_enable/status/0/payid/$item[id]}">启用</a>
+						{else:}
+							<a href="{url:/system/payment_enable/status/1/payid/$item[id]}">禁用</a>
+						{/if}
+					</td>
+				</tr>
+			{/foreach}
+		</tbody>
+	</table>
+	<table id="table_box_2" class="border_table" cellpadding="0" cellspacing="0" style="display: none">
+		<colgroup>
+			<col width="200px">
+			<col width="150px">
+			<col width="350px">
+			<col width="100px">
+		</colgroup>
+		<thead>
+			<tr>
+				<th>图标</th>
+				<th>支付名称</th>
+				<th>支付描述</th>
+				<th>操作</th>
+			</tr>
+		</thead>
+		<tbody>
+		{query: name= pay_plugin where=visibility eq 1}
+			<tr>
+				<td><img src="{webroot:plugins}{$item['logo']}" /></td>
+				<td>{$item['name']}</td>
+				<td>{$item['description']}</td>
+				<td>
+					<a href="{url:/system/payment_edit/id/$item[id]}">添加</a>
+				</td>
+			</tr>
+		{/query}
+		</tbody>
+	</table>
+</div>
+<script language="javascript">
+	//tab切换选择事件
+	function select_tab(curr_tab)
+	{
+		$(".content > table").hide();
+		$("#" + curr_tab).show();
+	}
+	//支付方式删除事件
+	function payment_del(payid)
+	{
+		var tempUrl = '{url:/system/payment_del/payid/@payid@}';
+		var tempUrl = tempUrl.replace('@payid@',payid);
+		location.href = tempUrl;
+	}
+</script>

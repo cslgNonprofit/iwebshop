@@ -1,0 +1,65 @@
+	<div class="wrapper clearfix">
+		<div class="wrap_box subscribe">
+			<table class="form_table" width="100%">
+				<caption class="t_l m_10"><img src="{skin:}images/front/subscibe.gif" width="88" height="23" alt="" /></caption>
+				<col width="135px" />
+				<col />
+				<tr>
+					<th valign="top"><img src="{skin:}images/front/post.gif" width="94" height="102" alt="" /></th>
+					<td id="form_td">
+						<p class="mt_10">您曾经订阅了我们的电子目录，因此我们将不时给您发送Iwebshop，本店的相关活动公告，产品信息。如果您不想频繁收到我们的邮件或不想收到我们的相关更新，请输入您的E-Mail地址，选择"退订"即可Iwebshop，Iwebshop期待您继续关注我们。</p>
+						<p class="mt_10">E-mail:<input class="gray" type="text" id="email" /></p>
+					</td>
+				</tr>
+				<tr><th></th><td><input type="button" onclick="unsubscribe();" class="submit_cancel" value="我要退订" /></td></tr>
+			</table>
+<script language="javascript">
+function unsubscribe()
+{
+	var email=$("#email").val();
+	if(email=="")
+	{
+		return;
+	}
+	$.post(
+		"{url:/site/unsubscribe_act/}",
+		{'email':email},
+		function(c)
+		{
+			if(c=='success')
+			{
+				var content=$("#unsubscribe_success").html();
+				var tmpdialog=art.dialog({'title':"",'content':content,'lock':true});
+			}
+			else
+			{
+				alert(c);
+			}
+		}
+	);
+}
+</script>
+			<table class="form_table" width="100%" style="display:none;">
+				<caption class="t_l m_10"><img src="{skin:}images/front/welcome.gif" width="182" height="23" alt="" /></caption>
+				<col width="135px" />
+				<col />
+				<tr>
+					<th valign="top"><img src="{skin:}images/front/email.gif" width="105" height="80" alt="" /></th>
+					<td>
+						<p class="mt_10">您的邮件地址“<span class="black">sdfdsf@sdf.com</span>”已经加入{echo:$siteConfig->name}的邮件列表。<br />您将第一时间收到来自{echo:$siteConfig->name}的最新产品介绍，特惠活动及更多特价和积分换购信息。</p>
+					</td>
+				</tr>
+				<tr><th></th><td><p>您还没有<b class="orange">{echo:$siteConfig->name}</b>账户？</p><a class="comm_btn bold" href="{url:/simple/reg}">我要注册</a></td></tr>
+			</table>
+		</div>
+	</div>
+
+<div id="unsubscribe_success" style="display:none;">
+	<div class="popwin" style="height:150px">
+		<a class="close_2 f_r mt_10" onclick="location.reload();" style="cursor:pointer">关闭</a>
+		<div class="cont">
+			<p class="red2 f14 bold m_10"><img src="{skin:}images/front/face.gif" width="42" height="42" /> 谢谢</p>
+			<p class="gray f14 bold">我们已收到您的相关订阅更新，将于10个工作日内生效，请见谅...</p>
+		</div>
+	</div>
+</div>

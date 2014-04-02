@@ -1,0 +1,57 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title></title>
+<link rel="stylesheet" href="{skin:css/admin.css}" />
+{js:jquery}
+{js:dialog}
+</head>
+<body style='width:500px;height:250px'>
+	{set:$tmpType=IReq::get('type');}
+	<form action='{url:/block/goods_list/type/$tmpType}' method='post'>
+		<table class='form_table'>
+			<col width="150px" />
+			<col />
+			<tr>
+				<th>商品名称：</th>
+				<td><input type='text' class='small' name='keywords' /></td>
+			</tr>
+			<tr>
+				<th>商品分类：</th>
+				<td>
+					{set:$tb_category = new IModel('category');$goods_class = new goods_class();
+						$sortData = $goods_class->sortdata($tb_category->query(false,'*','sort','asc'),0,' &nbsp&nbsp ');
+					}
+					<select name="category_id" pattern="required" alt="请选择分类值" class="auto">
+						<option value="">请选择</option>
+						{foreach:items=$sortData item=$value}
+						<option value="{$value['id']}">{$value['name']}</option>
+						{/foreach}
+					</select>
+				</td>
+			</tr>
+			<tr>
+				<th>商品价格：</th>
+				<td>
+					<input type='text' class='small' name='min_price' empty pattern='float' /> ～
+					<input type='text' class='small' name='max_price' empty pattern='float' />
+				</td>
+			</tr>
+			<tr>
+				<th>显示数量：</th>
+				<td>
+					<select class='small' name='show_num'>
+						<option value='10' selected=selected>10</option>
+						<option value='20'>20</option>
+					</select>
+				</td>
+			</tr>
+			<tr>
+				<th></th>
+				<td><button class='submit' type='submit'><span>搜索</span></button></td>
+			</tr>
+		</table>
+	</form>
+</body>
+</html>

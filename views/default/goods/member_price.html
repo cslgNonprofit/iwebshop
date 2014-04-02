@@ -1,0 +1,53 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>管理后台</title>
+<link rel="stylesheet" href="{skin:css/admin.css}" />
+{js:jquery}
+{js:dialog}
+{js:form}
+{js:validate}
+<script type='text/javascript' src="{theme:javascript/admin.js}"></script>
+<script type='text/javascript' src="{theme:javascript/menu.js}"></script>
+</head>
+<body style="width:500px;height:200px">
+<form action="" method="post" id="list">
+<div class="pop_win clearfix" style="width:500px;height:200px">
+	<table class="spec" width="100%" cellspacing="0" cellpadding="0" border="0">
+		<tr>
+			<td>
+				<div class="cont" id="tab">
+					<table name="table" width="98%" class="border_table" id="t">
+						<thead><tr><th>会员等级</th><th>价格</th><th>默认值</th></tr></thead>
+						<tbody id="b"><input type="hidden" name="num" id="num" value="{$num}"/>
+						{set:$ids = ''}
+						{query:name=user_group}
+						{set:$ids .=$item['id'].',';}
+						<tr><th style="text-align:center">{$item['group_name']}</th><td style="text-align:center"><input type="text" name="mem{$num}{$item['id']}" id="mem{$num}{$item['id']}" /></td><td style="text-align:center">￥{echo:($item['discount']/100)*$sell_price}</td></tr>
+						{/query}
+						<input type="hidden" name="ids" id="ids" value="{$ids}"/>
+						</tbody>
+					</table>
+				</div>
+			</td>
+		</tr>
+	</table>
+
+</div>
+</form>
+<script type="text/javascript">
+$(document).ready(function(){
+	{query:name=user_group}
+	var id_name = "mem"+"{$num}"+"{$item['id']}";
+	var value = parent.$('#'+id_name).val();
+	var name = "mem"+"{$num}"+"{$item['id']}";
+		if(value!=undefined && value!='')
+		{
+			$('#'+name).val(value);
+		}
+	{/query}
+});
+</script>
+</body>
+</html>

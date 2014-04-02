@@ -1,0 +1,30 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title></title>
+<link rel="stylesheet" href="{skin:css/admin.css}" />
+{js:jquery}
+{js:dialog}
+</head>
+<body>
+	<div class="content" style="overflow-y:auto;">
+		<table class="border_table">
+			<col width="50px" />
+			<col width="150px" />
+			<col />
+			<tbody>
+				{foreach:items = $this->data}
+				<tr>
+					<td><input type='checkbox' name='id[]' value='{$item['id']}' /></td>
+					<td><img src="{webroot:$item[list_img]}" width="80px" /></td>
+					<td>{$item['name']}</td>
+				</tr>
+				{/foreach}
+			</tbody>
+		</table>
+		<button type='button' class='submit' onclick="addRelation();"><span>确定</span></button>
+		<button type='button' class='submit' onclick="parent.closeDialog();"><span>取消</span></button>
+	</div>
+</body>
+</html>

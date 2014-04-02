@@ -1,0 +1,81 @@
+	{set:$seo_data=array(); $site_config=new Config('site_config');$site_config=$site_config->getInfo();}
+	{set:$seo_data['title']=$this->noticeRow['title']}
+	{if:isset($site_config['name'])}
+		{set:$seo_data['title'].="_".$site_config['name']}
+	{/if}
+	{set:seo::set($seo_data);}
+
+
+<script type="text/javascript" src="{skin:zeroclipboard/}ZeroClipboard.js"></script>
+	<script language="JavaScript">
+		var clip = null;
+		function init() {
+			ZeroClipboard.setMoviePath( '{skin:zeroclipboard/}ZeroClipboard.swf' );
+			clip = new ZeroClipboard.Client();
+			clip.addEventListener('complete', function (client, text) {
+				//这个地方不要用artdialog模拟的alert，有冲突
+				realAlert('已经Copy到您的剪贴板，可以粘贴到任意地方');
+			});
+
+			clip.addEventListener('mouseOver', function (client) {
+				clip.setText( $('#d_clip_button').attr('url') );
+			});
+
+			clip.glue( 'd_clip_button' );
+		};
+		$(document).ready(function(){init();});
+	</script>
+
+	<div class="position"> <span>您当前的位置：</span> <a href="{url:}"> 首页</a> » 商品公告 </div>
+	<div class="wrapper clearfix container_2">
+	<div class="sidebar f_l">
+		<div class="box m_10">
+			<div class="title">热卖商品</div>
+			<div class="content">
+			  <ul class="ranklist">
+				{query:name=commend_goods as commend join=left join goods as go on go.id eq commend.goods_id
+					where  = commend_id eq 3 and go.id is not null and go.is_del eq 0
+					fields = go.id,go.list_img,go.name,go.sell_price
+					limit  = 10
+				}
+				<li class='current'><a href="{url:/site/products/id/$item[id]}"><img src="{webroot:}{$item['list_img']}" width="58" height="58" /></a><a href="{url:/site/products/id/$item[id]}">{$item['name']}</a><b>￥{$item['sell_price']}</b></li>
+				{/query}
+			  </ul>
+			</div>
+		</div>
+		<div class="box m_10">
+			<div id="adHere_10"></div>
+			<script language="javascript">
+			(new adLoader()).load(10,'adHere_10');
+			</script>
+		</div>
+	</div>
+	<div class="main f_r">
+		<div class="box m_10">
+			<div class="title2">商城公告</div>
+			<div class="cont">
+				<div class="c_box">
+					<h2>{$this->noticeRow['title']}</h2>
+					<div class="partake_bar clearfix">
+						{set:$name=$this->noticeRow['title'];$id=intval(IReq::get('id'));$itemURL=IUrl::getHost().IUrl::creatUrl("/site/notice_detail/id/$id");}
+						<span class="f_r"><span id="d_clip_button" url="{$itemURL}">复制链接</span></span>
+						<div class="partake f_r">
+							<a id="site-qzone" title="分享到腾讯微博" target="_blank" onclick="postShare('qq','{$itemURL}','{$name}');return false;" href="javascript:void(0)">腾讯</a>
+							<a id="site-kaixing" title="分享到开心网" target="_blank" onclick="postShare('kaixin','{$itemURL}','{$name}');return false;" href="javascript:void(0)">开心</a>
+							<a id="site-renren" title="分享到人人网" target="_blank" onclick="postShare('renren','{$itemURL}','{$name}');return false;" href="javascript:void(0)">人人</a>
+							<a id="site-douban" title="分享到豆瓣网" target="_blank" onclick="postShare('douban','{$itemURL}','{$name}');return false;" href="javascript:void(0)">豆瓣</a>
+							<a id="site-sina" title="分享到新浪微博" target="_blank" onclick="postShare('xinlang','{$itemURL}','{$name}');return false;" href="javascript:void(0)">新浪</a>
+						</div>
+
+							发布日期：{$this->noticeRow['time']} <span>分享到：</span>
+
+					</div>
+					<hr class="m_10" />
+					<div class="textcontent">
+						<p>{$this->noticeRow['content']}</p>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+	</div>

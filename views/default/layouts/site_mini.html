@@ -1,0 +1,43 @@
+{set:$siteConfig=new Config("site_config");}
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>{echo:$siteConfig->name}</title>
+<link rel="stylesheet" href="{skin:css/index.css}" />
+<link rel="stylesheet" type="text/css" href="{skin:}jquery.bxSlider/bx_styles/bx_styles.css" />
+{js:jquery}
+{js:validate}
+{js:form}
+{js:dialog}
+<script type='text/javascript' src="{theme:javascript/common.js}"></script>
+</head>
+<body class="second" >
+<div class="brand_list container_2">
+	<div class="header">
+		<h1 class="logo"><a title="{echo:$siteConfig->name}" style="background:url({webroot:image/logo.gif});" href="{url:}">{echo:$siteConfig->name}</a></h1>
+		<ul class="shortcut">
+			<li class="first"><a href="{url:/ucenter/index}">我的账户</a></li>
+			<li><a href="{url:/ucenter/order}">我的订单</a></li>
+	   		<li class='last'><a href="{url:/site/help_list}">使用帮助</a></li>
+		</ul>
+		{set:$user = $this->user}
+		<p class="loginfo">{if:(isset($user['user_id']) && $user['user_id']!='')}{$user['username']}您好，欢迎您来到{echo:$siteConfig->name}购物！[<a class='reg' href="{url:/simple/logout}">安全退出</a>]{else:}[<a href="{url:/simple/login}">登录</a>
+		{set:$callback = IReq::get('callback')}
+		{if:$callback==""}
+		<a class="reg" href="{url:/simple/reg}">免费注册</a>
+		{else:}
+		{set:$callback=urlencode($callback);}
+		<a class="reg" href="{url:/simple/reg?callback=$callback}">免费注册</a>
+		{/if}
+		]{/if}</p>
+	</div>
+
+    {viewcontent}
+
+	{echo:$siteConfig->site_footer_code}
+
+</div>
+<script type='text/javascript' src='{theme:javascript/site.js}'></script>
+</body>
+</html>

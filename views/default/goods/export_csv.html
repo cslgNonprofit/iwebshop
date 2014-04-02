@@ -1,0 +1,102 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" style="overflow-y:auto">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>管理后台</title>
+<link rel="stylesheet" href="{skin:css/admin.css}" />
+{js:jquery}
+{js:dialog}
+{js:form}
+{js:validate}
+<script type='text/javascript' src="{theme:javascript/admin.js}"></script>
+<script type='text/javascript' src="{theme:javascript/menu.js}"></script>
+</head>
+<body style="width:600px">
+<div class="pop_win">
+<form action='{url:/goods/output_csv}' method='post' name="output_csv">
+	<table width="90%" class="border_table" style="margin:10px auto">
+		<col width="100px" />
+		<col width="100px" />
+		<tbody>
+			<tr>
+				<th>导出格式</th>
+				<td style="text-align:left;">
+					<input type="hidden" name="id" value="{$this->id}"/>
+					<select name="date_format" id="date_format" onchange="select_show(this.value);">
+						<option value="0">请选择...</option>
+						<option value="goods_csv">iWebShop CSV格式</option>
+						<option value="taobao_csv">淘宝助理    CSV格式</option>
+					</select>
+				</td>
+			</tr>
+			<tr id="show" style="text-align:left;display:none;">
+				<th>输入淘宝默认值</th>
+				<td>
+					<table>
+					<tr>
+						<th>宝贝类目：</th><td><input type="text" class="small" name="category" id="category" value="0"/>&nbsp;类目默认值为0</td>
+					</tr>
+					<tr>
+						<th>EMS价格：</th><td><input type="text" class="small" name="ems" id="ems" value="0"/></td>
+					</tr>
+					<tr>
+						<th>快递价格：</th><td><input type="text" class="small" name="exp" id="exp" value="0"/></td>
+					</tr>
+					<tr>
+						<th>平邮价格：</th><td><input type="text" class="small" name="post" id="post" value="0"/></td>
+					</tr>
+					</table>
+				</td>
+			</tr>
+			<tr>
+				<th></th><td><button class="submit" type="submit" onclick="return check_submit();"><span>导出</span></button></td>
+			</tr>
+		</tbody>
+	</table>
+</form>
+</div>
+<script type="text/javascript">
+function check_submit()
+{
+	var format = $('#date_format').val();
+	if(format=='0')
+	{
+		alert('请选择数据格式!');
+		return false;
+	}
+	if(format=='taobao_csv')
+	{
+		var ems = $('#ems').val();
+		var exp = $('#exp').val();
+		var post = $('#post').val();
+		if(ems=='0')
+		{
+			alert('EMS价格不能为0！');
+			return false;
+		}
+		if(exp=='0')
+		{
+			alert('快递价格不能为0！');
+			return false;
+		}
+		if(post=='0')
+		{
+			alert('平邮价格不能为0！');
+			return false;
+		}
+	}
+}
+function select_show(value)
+{
+	if(value=='taobao_csv')
+	{
+		$('#show').show();
+	}
+	else
+	{
+		$('#show').hide();
+	}
+}
+</script>
+</body>
+</html>

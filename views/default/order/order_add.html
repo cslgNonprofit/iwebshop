@@ -1,0 +1,886 @@
+<div class="headbar clearfix">
+	<div class="position">订单<span>></span><span>订单管理</span><span>></span><span>订单添加</span></div>
+</div>
+<form name="ModelForm" action="{url:/order/order_update}" method="post">
+<div class="content_box">
+	<div class="content form_content">
+		<table id="tab-1" class="form_table" name="table">
+			<col width="150px" />
+			<col />
+			<tr>
+				<th>请选择用户名：<input type="hidden" id="user_id" name="user_id" value=""/></th>
+				<td><input class="normal" onfocus="selUser()" name="user_name" id="user_name" type="text" pattern="required" readonly value=""  alt="用户名错误"/><label id="user_span">请输入用户名</label></td>
+			</tr>
+			<tr>
+				<th>添加订单商品：
+				<input type="hidden" id="goods_id" name="goods_id" value=""/>
+				<input type="hidden" id="p_id" name="p_id" value=""/>
+				<input type="hidden" id="price" name="price" value=""/>
+				<input type="hidden" id="real_price" name="real_price" value=""/>
+				<input type="hidden" id="weight" name="weight" value=""/>
+				<input type="hidden" id="total" name="total" value=""/>
+				<input type="hidden" id="real_total" name="real_total" value=""/>
+				<input type="hidden" id="weight_total" name="weight_total" value=""/>
+				<input type="hidden" id="num" name="num" value=""/>
+				<input type="hidden" id="number" name="number" value=""/>
+				</th>
+				<td><input class="normal" name="good_name" onfocus="selGood()" id="good_name" type="text" pattern="required" readonly value=""  alt="订单商品错误"/><label id="goods_span">请输入订单商品</label></td>
+			</tr>
+			<tr>
+				<td></td>
+				<td>
+					<table id="sub_goods">
+					</table>
+				</td>
+			</tr>
+			<tr id="next">
+				<td></td>
+				<td><button class="submit" type="submit" onclick="return checkForm()"><span>下一步</span></button></td>
+			</tr>
+		</table>
+<script type="text/javascript">
+//检测数据
+function checkForm()
+{
+	var user = $("#user_id").val();
+	var good = $("#goods_id").val();
+	if($.trim(user)=='')
+	{
+		alert('请选择用户名！');
+		return false;
+	}
+	if($.trim(good)=='')
+	{
+		alert('请选择商品！');
+		return false;
+	}
+	$("#next").remove();
+	$("#tab-2").show();
+}
+//获得最大的数
+function get_num(num)
+{
+	var max_num = 0;
+	if(num!='')
+	{
+		var num_arr = num.split(',');
+		for(var i=0;i<num_arr.length;i++)
+		{
+			if(parseInt(num_arr[i])>max_num)
+			{
+				max_num = num_arr[i];
+			}
+		}
+	}
+	return max_num;
+}
+//添加商品订单
+function selGood()
+{
+	art.dialog.open('{url:/order/search_goods}',{
+		id:'alert_goods',
+		width:'600px',
+		height:'325px',
+	    title: '选择...',
+	    yesFn: function(iframeWin, topWin){
+	        // iframeWin: 对话框iframe内容的window对象
+	        // topWin: 对话框所在位置的window对象
+	        var form = iframeWin.document.getElementById('list'),
+	             arr = iframeWin.$("[name='selec']:checked"),
+            goods_va = '',p_va = '',price_va = '',name_va = '',total = 0,weight_va = '',weight_total = 0,num_va = '',number_va = '';
+            if(arr.length>0)
+	        {
+    	        var html_tr = '';
+    	        var num_value = $("#num").val();
+    	        var num_length = get_num(num_value);
+        	 	for(var i=0;i<arr.length;i++)
+ 	            {
+	 	            var trr = arr[i].value;
+	 	            var crr = trr.split(',');
+        	 	  goods_va += crr[0]+',';
+        	 		  p_va += crr[1]+',';
+        	 	   name_va += crr[2]+',';
+        	 	  price_va += crr[3]+',';
+        	 		  total = parseFloat(crr[3])+total;
+         	   weight_total = parseFloat(crr[4])+weight_total;
+         	 	 weight_va += crr[4]+',';
+        	 		//num_va += i+',';
+        	 	 number_va += '1,';
+        	 	 if(parseInt(num_length)>0)
+        	 	 {
+         	 		num_length = parseInt(num_length)+1;
+        	 	 }
+        	 	 var lenth = parseInt(num_length)+i;
+         	 	num_va += lenth+',';
+        	 	   html_tr += '<tr id="sub_tr_'+lenth+'"><td>'+crr[2]+'</td><td><input type="text" name="goods_name_'+lenth+'" id="goods_name_'+lenth+'" size="5" value="1" onblur="subNum(this.value,'+lenth+')"/></td><td><img class="operator" src="{skin:images/admin/icon_del.gif}" alt="删除" onclick="del_tr('+lenth+')"/></td></tr>';
+ 	            }
+ 	            if($("#goods_id").val()!='')
+ 	            {
+ 	            	$("#goods_id").val($("#goods_id").val()+','+goods_va.substring(0,goods_va.length-1));
+ 	            }
+ 	            else
+ 	            {
+ 	            	$("#goods_id").val(goods_va.substring(0,goods_va.length-1));
+ 	            }
+        	 	//$("#goods_id").val(goods_va.substring(0,goods_va.length-1));
+        	 	if($("#p_id").val()!='')
+        	 	{
+        	 		$("#p_id").val($("#p_id").val()+','+p_va.substring(0,p_va.length-1));
+        	 	}
+        	 	else
+        	 	{
+        	 		$("#p_id").val(p_va.substring(0,p_va.length-1));
+        	 	}
+	 				//$("#p_id").val(p_va.substring(0,p_va.length-1));
+	 			   //$("#price").val(price_va.substring(0,price_va.length-1));
+	 			if($("#price").val()!='')
+	 			{
+	 				$("#price").val($("#price").val()+','+price_va.substring(0,price_va.length-1));
+	 			}
+	 			else
+	 			{
+	 				$("#price").val(price_va.substring(0,price_va.length-1));
+	 			}
+	 			if($("#good_name").val()!='')
+	 			{
+	 				 $("#good_name").val($("#good_name").val()+','+name_va.substring(0,name_va.length-1));
+	 			}
+	 			else
+	 			{
+	 				 $("#good_name").val(name_va.substring(0,name_va.length-1));
+	 			}
+	 			if($("#weight").val()!='')
+	 			{
+	 				 $("#weight").val($("#weight").val()+','+weight_va.substring(0,weight_va.length-1));
+	 			}
+	 			else
+	 			{
+	 				 $("#weight").val(weight_va.substring(0,weight_va.length-1));
+	 			}
+		 	   //$("#good_name").val(name_va.substring(0,name_va.length-1));
+			 	  //$("#weight").val(weight_va.substring(0,weight_va.length-1));
+			 	if($("#total").val()!='')
+			 	{
+			 		$("#total").val(parseFloat($("#total").val())+parseFloat(total));
+			 	}
+			 	else
+			 	{
+			 		 $("#total").val(total);
+			 	}
+			 	   //$("#total").val(total);
+			 	if($("#weight_total").val()!='')
+			 	{
+			 		$("#weight_total").val(parseFloat($("#weight_total").val())+parseFloat(weight_total));
+			 	}
+			 	else
+			 	{
+			 		$("#weight_total").val(weight_total);
+			 	}
+			 	if($("#number").val()!='')
+			 	{
+			 		$("#number").val($("#number").val()+','+number_va.substring(0,number_va.length-1));
+			 	}
+			 	else
+			 	{
+			 		$("#number").val(number_va.substring(0,number_va.length-1));
+			 	}
+			 	if($("#num").val()!='')
+			 	{
+			 		$("#num").val($("#num").val()+','+num_va.substring(0,num_va.length-1));
+			 	}
+			 	else
+			 	{
+			 		$("#num").val(num_va.substring(0,num_va.length-1));
+			 	}
+				  //$("#number").val(number_va.substring(0,number_va.length-1));
+        	   $("#sub_goods").append(html_tr);
+
+				//获得实际商品价格和实际总金额
+        	    getAmount();
+          	 //给商品总价格
+		    }
+            else
+	        {
+            	alert("请选择商品!");
+		        return false;
+		    }
+	        form.submit();
+	        $('[name="good_name"]').removeClass('invalid-text');
+			$('[name="good_name"]').addClass('valid-text');
+
+			$('#goods_span').removeClass('invalid-msg');
+			$('#goods_span').addClass('valid-msg');
+			$('#goods_span').html("商品名正确");
+	    }
+	});
+}
+//获得订单总金额
+function order_amount()
+{
+	var real_total = $('#real_total').val();//应付总金额
+	var real_freight = $('#real_freight').val();//应付运费
+	var taxes = 0;//计算税金
+	var tax = {$this->tax};
+	if($("#invoice").attr("checked")==true)
+	{
+		taxes = real_total*(tax/100);
+	}
+	var pay_fee = $('#pay_fee').val();
+	var total = parseFloat(real_total) + taxes;
+	if(real_freight!='')
+	{
+		total = total + parseFloat(real_freight);
+	}
+	if(pay_fee!='')
+	{
+		total = total + parseFloat(pay_fee);
+	}
+	$("#td_1").html('￥：'+price_float(real_total));
+	$("#td_3").html('￥：'+price_float(total));
+}
+//获得实际总金额
+function getAmount()
+{
+	var uid = $('#user_id').val();
+	var price = $('#price').val();
+	var goods_id = $('#goods_id').val();
+	var number = $('#number').val();
+	var pid = $('#p_id').val();
+	var total = $("#total").val();
+	if($("#user_id").val()!='' && $("#goods_id").val()!='')
+    {
+    	$.get("{url:/order/getAmount}",{uid:uid,price:price,gid:goods_id,number:number,pid:pid}, function(data)
+    	{
+         	if(data.length>0)
+         	{
+            	var real = data.split(';');
+            	$("#real_price").val(real[1]);
+ 	            $("#real_total").val(real[2]);
+ 	            //判断是否免运费,当==true的时候免运费
+ 	            if(real[0]=='1')
+ 	            {
+ 	 	            $("#real_freight").val(0);
+ 	 	        	  $('#relieve').val('1');
+ 	            }
+	 	           order_amount();
+         	}
+         });
+    }
+    else
+    {
+         $("#real_price").val(price);
+         $("#real_total").val(total);
+         order_amount();
+    }
+}
+//获得value：商品的个数，保存到number中；num：第几个浮动层
+function subNum(val,num)
+{
+	val = $.trim(val);
+	if(val=='')
+	{
+		val='0';
+	}
+	//获取处理商品值
+		var	 total_val = $("#total").val(),weight_total_val = $("#weight_total").val();
+	//获取处理商品所需的数组
+	var	num_val_arr = $("#num").val().split(','),
+	  price_val_arr = $("#price").val().split(','),
+		 weight_arr = $("#weight").val().split(',');
+	 number_val_arr = $("#number").val().split(',');
+	//设定变量
+	var key = 0;
+	//查出要删除值，在数组中的位置
+    for(var i=0;i<num_val_arr.length;i++)
+    {
+        if(num_val_arr[i]==num)
+        {
+            key = i;
+            break;
+        }
+    }
+    //计算总价，先减去原来的单价*数量，然后将单价乘以数量再加到总价中
+    total_val = parseFloat(total_val) - parseFloat(price_val_arr[key])*parseFloat(number_val_arr[key]);
+    total_val = parseFloat(total_val) + parseFloat(price_val_arr[key])*parseFloat(val);
+    //计算总重量，先减去原来的单位重量*数量，然后将单位重量乘以数量再加到总重量中
+    weight_total_val = weight_total_val - parseFloat(weight_arr[key])*parseFloat(number_val_arr[key]);
+    weight_total_val = weight_total_val + parseFloat(weight_arr[key])*parseFloat(val);
+    //替换数组中商品的数量
+    number_val_arr.splice(key,1,parseFloat(val));
+    var len = num_val_arr.length;
+    number_val = '';
+    for(var i=0;i<len;i++)
+	{
+  	   number_val += number_val_arr[i]+',';
+	}
+    //将值赋给对象
+    	  $("#number").val(number_val.substring(0,number_val.length-1));
+    	   $("#total").val(total_val);
+    $("#weight_total").val(weight_total_val);
+    getAmount();
+    //给商品总价格
+}
+//删除浮动层
+function del_tr(va)
+{
+	var goods_val = $("#goods_id").val(),
+			p_val = $("#p_id").val(),
+		price_val = $("#price").val(),
+ 		 name_val = $("#good_name").val(),
+	   weight_val = $("#weight").val(),
+	  	  num_val = $("#num").val(),
+ weight_total_val = $("#weight_total").val(),
+		total_val = $("#total").val(),
+	   number_val = $("#number").val();
+
+    //获取处理商品所需的数组
+	var goods_arr = goods_val.split(','),
+	  	  pid_arr = p_val.split(','),
+	price_val_arr = price_val.split(','),
+	 name_val_arr = name_val.split(','),
+	  num_val_arr = num_val.split(','),
+   number_val_arr = number_val.split(','),
+	   weight_arr = weight_val.split(',');
+    //设定变量
+    var key = 0;
+    //删除数组函数
+    Array.prototype.remove=function(dx)
+    {
+      if(isNaN(dx)||dx>this.length){return false;}
+      for(var i=0,n=0;i<this.length;i++)
+      {
+          if(this[i]!=this[dx])
+          {
+              this[n++]=this[i]
+          }
+      }
+      this.length-=1
+    }
+    //查出要删除值，在数组中的位置
+    for(var i=0;i<num_val_arr.length;i++)
+    {
+        if(num_val_arr[i]==va)
+        {
+            key = i;
+            break;
+        }
+    }
+    //将要删除的重量和价格从总重量和总价格中减去
+    	   total_val = parseFloat(total_val) - parseFloat(price_val_arr[key]);
+    weight_total_val = parseFloat(weight_total_val) - parseFloat(weight_arr[key]);
+    //删除相应的数组值
+  	  num_val_arr.remove(key);
+   		goods_arr.remove(key);
+		  pid_arr.remove(key);
+ 	price_val_arr.remove(key);
+  	 name_val_arr.remove(key);
+   	   weight_arr.remove(key);
+   number_val_arr.remove(key);
+
+    	goods_val = '';
+    		p_val = '';
+    	price_val = '';
+     	 name_val = '';
+       weight_val = '';
+    	  num_val = '';
+       number_val = '';
+
+    //循环将数组赋值为字符串
+   	  for(var i=0;i<num_val_arr.length;i++)
+  	  {
+     		goods_val += goods_arr[i]+',';
+     		  num_val += num_val_arr[i]+',';
+     			p_val += pid_arr[i]+',';
+     		price_val += price_val_arr[i]+',';
+     		 name_val += name_val_arr[i]+',';
+     	   weight_val += weight_arr[i]+',';
+      	   number_val += number_val_arr[i]+',';
+  	  }
+		//将值赋给对象
+     	$("#goods_id").val(goods_val.substring(0,goods_val.length-1));
+     	$("#p_id").val(p_val.substring(0,p_val.length-1));
+     	$("#price").val(price_val.substring(0,price_val.length-1));
+     	$("#good_name").val(name_val.substring(0,name_val.length-1));
+     	$("#weight").val(weight_val.substring(0,weight_val.length-1));
+     	$("#num").val(num_val.substring(0,num_val.length-1));
+     	$("#number").val(number_val.substring(0,number_val.length-1));
+     	$("#total").val(total_val);
+     	$("#weight_total").val(weight_total_val);
+  	//删除页面
+	$("#sub_tr_"+va).remove();
+	getAmount();
+	//给商品总价格
+	if(num_val_arr.length==0)
+	{
+		 $('[name="good_name"]').removeClass('valid-text');
+		 $('[name="good_name"]').addClass('invalid-text');
+
+		 $('#goods_span').removeClass('valid-msg');
+		 $('#goods_span').addClass('invalid-msg');
+		 $('#goods_span').html("请选择商品");
+	}
+}
+</script>
+	<table class="form_table" style="display:none" id="tab-2">
+			<col width="150px" />
+			<col />
+			<tr>
+				<th>收货人信息:</th>
+				<td>
+					<table width="80%" class="border_table">
+						<col width="150px" />
+						<col />
+						<tr>
+							<th>收货人姓名：</th>
+							<td><input class="normal" name="accept_name" id="accept_name" type="text" pattern="required" value="{$accept_name}" alt="收货人错误"/><label id="accept_span">收货人姓名</label></td>
+						</tr>
+						<tr>
+							<th>收货地区：</th>
+							<td>
+							<select name="province" id="province" onchange="select_city(this.value,2);">
+							<option value="">请选择省份</option>
+							{query: name=areas where=parent_id eq 0}<option value="{$item['area_id']},{$item['area_name']}" >{$item['area_name']}</option>{/query}
+							</select>
+							<span id="selec2"></span><span id="selec3"></span></td>
+						</tr>
+						<tr>
+							<th>收货地址：<input type="hidden" name="add_name" id="add_name" value=""/></th>
+							<td><span id="add">[地区]</span><input class="normal" name="address" id="address" type="text" pattern="required" value=""  alt="收货地址错误"/><label>收货地址</label></td>
+						</tr>
+						<tr>
+							<th>邮编：</th>
+							<td><input class="small" name="postcode" type="text" value="" empty pattern="zip" alt="请输入正确的邮编"/></td>
+						</tr>
+						<tr>
+							<th>手机：</th>
+							<td><input class="small" name="mobile" id="mobile" type="text" pattern="mobi" value="" maxlength="11"  alt="手机号码错误"/><label>手机号码</label></td>
+						</tr>
+						<tr>
+							<th>固定电话：</th>
+							<td><input class="small" name="telphone" type="text" value="" empty alt="请输入正确的固定电话" pattern="phone"/></td>
+						</tr>
+						<tr>
+							<th>是否保存地址：</th>
+							<td><input type="checkbox" name="if_save" value="1"/></td>
+						</tr>
+						<tr>
+							<th>订单附言：</th>
+							<td><input class="normal" name="postscript" type="text"  value="" /><span></span></td>
+						</tr>
+					</table>
+				</td>
+			</tr>
+			<tr>
+				<th>配送方式:</th>
+				<input type="hidden" name="delivery_id" id="delivery_id" value=""/><!--保存被选中的配送方式id（单个）  -->
+				<input type="hidden" name="delivery_price" id="delivery_price" value=""/><!--保存被选中的配送方式price（单个）  -->
+				<input type="hidden" name="real_freight" id="real_freight" value=""/><!--实际运费（单个）  -->
+				<input type="hidden" name="relieve" id="relieve" value="0"/><!--是否免除运费，0为不免，1为免  -->
+				<input type="hidden" name="de_id" id="de_id" value=""/><!--保存所有的配送方式id，为字符串  -->
+				<input type="hidden" name="pay_type" id="pay_type" value=""/><!--判断用户选择的配送方式是不是货到付款  -->
+				<td id="tab-4">
+					<table width="80%" class="border_table">
+						<col width="150px" />
+						<col />
+						<label>请先选择收货地区！</label>
+					</table>
+				</td>
+			</tr>
+			<tr>
+				<th>支付方式:</th>
+				<td id="pay_style">
+					<table width="80%" class="border_table">
+						{foreach:items=$payment_list}
+						<tr>
+							<th class='title'><label><input type="radio" name="payment" onclick="getPay_fee(this.value)" value="{$item['id']}"/>{$item['name']}</label></th>
+							<td>{$item['description']}</td>
+						</tr>
+						{/foreach}
+						<tr><th>支付账号:<input type="hidden" name="pay_fee" id="pay_fee" value="0"/></th><td><input class="normal" type="text" name="pay_code" id="pay_code" maxlength="40"value="" alt="请输入支付账号"/><label>支付账号</label></td></tr>
+					</table>
+				</td>
+				<td id="pay_show" style="display:none;">
+					您选择的是货到付款!<input type="hidden" name="paymen" id="paymen" value="0"/>
+				</td>
+			</tr>
+			<tr>
+				<th valign="top">支付订单确认:</th>
+				<td>
+					<table width="80%" class="border_table">
+						<col width="150px" />
+						<col />
+						<tr>
+							<th>商品总价格:</th>
+							<td><span id="td_1"></span></td>
+						</tr>
+						<tr id="tab_3" style="display:none">
+							<th>配送费用:</th>
+							<td><span id="td_2"></span></td>
+						</tr>
+						<tr id="tab_4" style="display:none">
+							<th>税金:</th>
+							<td><span id="td_5"></span></td>
+						</tr>
+						<tr id="tab_6" style="display:none">
+							<th>支付费用:</th>
+							<td><span id="td_6"></span></td>
+						</tr>
+						<tr id="tab_5">
+							<th>订单总金额:</th>
+							<td>
+							<span id="td_3"></span>&nbsp;<input type="hidden" name="taxes" id="taxes" value="0"/>
+							是否需要发票(税率：{$this->tax}%)&nbsp;&nbsp;<input type="checkbox" name="invoice" id="invoice" value="1" onclick="if_invoice(this.id)"/>
+							</td>
+						</tr>
+						<tr id="td_4" style="display:none">
+							<th></th>
+							<td>
+							<span>发票抬头:<input type="text" name="invoice_title" id="invoice_title" value=""/></span>
+							</td>
+						</tr>
+					</table>
+				</td>
+			</tr>
+			<tr>
+				<th></th>
+				<td><button class="submit" type="submit" onclick="return checkForm1()"><span>保 存</span></button></td>
+			</tr>
+		</table>
+	</div>
+</div>
+</form>
+<script type="text/javascript">
+//截取float类型的价格，如果float.后面的多于2位则截取并且4舍5入
+function price_float(price)
+{
+	if(price.toString().indexOf('.')>0)
+	{
+		var arr = price.toString().split('.');
+		var th = arr[1].substring(2,3);
+		if(parseInt(th)>4)
+		{
+			arr[1] = parseInt(arr[1].substring(0,2))+1
+		}
+		else
+		{
+			arr[1] = parseInt(arr[1].substring(0,2));
+		}
+		price = '';
+		price = arr[0]+'.'+ arr[1];
+	}
+	else
+	{
+		price +='.00';
+	}
+	return price;
+}
+//支付费用的计算
+function getPay_fee(pay_va)
+{
+	var total = 0;
+	var real_total = $('#real_total').val();//应付总金额
+	var real_freight = $('#real_freight').val();//应付运费
+	var taxes = 0;//计算税金
+	var tax = {$this->tax};
+	if($("#invoice").attr("checked")==true)
+	{
+		taxes = real_total*(tax/100);
+	}
+	total = parseFloat(real_total) + taxes;
+	if(real_freight!='')
+	{
+		total = total + parseFloat(real_freight);
+	}
+	$.get("{url:/order/gePay_fee}",{pid:pay_va,total:total}, function(data)
+   	{
+	   	if(data==null)
+		{
+			data = 0;
+		}
+		$("#pay_fee").val(price_float(data));
+		//显示内容
+		$('#tab_6').show();
+		$('#td_6').html('￥：'+price_float(data));
+		order_amount();
+    });
+}
+	function if_invoice(id)
+	{
+		var tax = {$this->tax};
+		if($("#"+id).attr("checked")==true)
+		{
+			$("#td_4").show();
+			//计算税金
+			var total = $('#real_total').val()*(tax/100);
+			$('#td_5').html('￥：'+price_float(total));
+			$('#tab_4').show();
+			$('#taxes').val(price_float(total));
+			order_amount();
+		}
+		else
+		{
+			$('#taxes').val(0);
+			order_amount();
+			$("#td_4").hide();
+			$("#tab_4").hide();
+		}
+	}
+	function checkForm1()
+	{
+		if($("user_name").val()=='')
+		{
+			$("user_name").focus();
+			return false;
+		}
+		if($("goods_name").val()=='')
+		{
+			$("goods_name").focus();
+			return false;
+		}
+		if($('#accept_name').val()=='')
+		{
+			$('#accept_name').removeClass('valid-text');
+			$('#accept_name').addClass('invalid-text');
+
+			$('#accept_span').removeClass('valid-msg');
+			$('#accept_span').addClass('invalid-msg');
+			$('#accept_span').html("请输入收货人姓名!");
+			$('#accept_name').focus();
+			return false;
+		}
+		var city = $("#city").val();
+		var area = $("#area").val();
+		if(city==undefined || city=='')
+		{
+			alert("请选择城市!");
+			return false;
+		}
+		if(area==undefined || area=='')
+		{
+			alert('请选择地区!');
+			return false;
+		}
+		if($('input[name=delivery]:checked').val()==null)
+		{
+			alert('请选择配送方式!');
+			return false;
+		}
+		//判断是否是货到付款
+		var pay_type = $("#pay_type").val();
+		if(pay_type=='0')
+		{
+			if($('input[name=payment]:checked').val()==null)
+			{
+				alert('请选择支付方式!');
+				return false;
+			}
+		}
+		if($("#invoice").attr("checked")==true)
+		{
+			if($('#invoice_title').val()=='')
+			{
+				alert('请输入发票抬头!');
+				$('#invoice_title').focus();
+				return false;
+			}
+		}
+	}
+	//添加用户名
+	function selUser()
+	{
+		art.dialog.open('{url:/order/search_user}', {
+			id:'alert_user',
+			width:'600px',
+			height:'325px',
+		    title: '选择...',
+		    yesFn: function(iframeWin, topWin){
+		        // iframeWin: 对话框iframe内容的window对象
+		        // topWin: 对话框所在位置的window对象
+		        var form = iframeWin.document.getElementById('list'),
+		             txt = iframeWin.$("input[name='spec']:checked").val(),
+		              id = document.getElementById('user_id'),
+		             val = document.getElementById('user_name');
+		        if (txt)
+		        {
+		        	  var arr = txt.split(",");
+		        	 id.value = arr[0];
+		        	val.value = arr[1];
+		        	getAmount();
+			    }
+		        else
+		        {
+			        alert("请选择用户!");
+			        return false;
+		        }
+		        form.submit();
+		        $('[name="user_name"]').removeClass('invalid-text');
+				$('[name="user_name"]').addClass('valid-text');
+
+				$('#user_span').removeClass('invalid-msg');
+				$('#user_span').addClass('valid-msg');
+				$('#user_span').html("用户名正确");
+		    }
+		});
+	}
+	//获得选中的地区名称
+	var span_name_one = '',
+		span_name_two = '',
+	  span_name_three = '';
+	function select_city(city,style)
+	{
+		var arr = city.split(',');
+		$.getJSON("{url:/block/area_child}",{aid:arr[0],random:Math.random()}, function(json)
+		{
+			if(style==2)
+			{
+				var select_html = '<select name="city" id="city" onchange="select_city(this.value,3);">';
+				select_html += '<option value="">请选择城市</option>';
+				for( a in json)
+				{
+					select_html +='<option value="'+json[a]['area_id']+','+json[a]['area_name']+'">'+json[a]['area_name']+'</option>';
+				}
+				select_html +='</select>';
+				$("#selec3").hide();
+				$("#selec"+style).html(select_html);
+				//调用配送方式ajax,将省份的id发送过去
+				delivery(arr[0]);
+				//为收货地区赋值
+				span_name_one = arr[1];
+				span_name_two = '';
+				span_name_three = '';
+			}
+			if(style==3)
+			{
+				if(json.length>0)
+				{
+					var select_html = '<select name="area" id="area" onchange="select_city(this.value,4);">';
+					select_html += '<option value="">请选择地区</option>';
+					for( a in json)
+					{
+							select_html +='<option value="'+json[a]['area_id']+','+json[a]['area_name']+'">'+json[a]['area_name']+'</option>';
+					}
+					select_html +='</select>';
+					$("#selec"+style).show();
+					$("#selec"+style).html(select_html);
+				}
+				else
+				{
+					$("#selec"+style).hide();
+				}
+				span_name_two = arr[1];
+				span_name_three = '';
+			}
+			if(style==4)
+			{
+				span_name_three = arr[1];
+			}
+			$("#add").html(span_name_one+span_name_two+span_name_three);
+			$("#add_name").val(span_name_one+span_name_two+span_name_three);
+		});
+	}
+	function delivery(id)
+	{
+		//通过省份id查询出配送方式，并且传送总重量计算出运费,然后显示配送方式
+		var weight = $("#weight_total").val();
+		var de_id = '';
+		$.getJSON("{url:/block/order_delivery}",
+			{province:id,weight:weight,random:Math.random()},
+			function(json){
+			var html_va = '<table class="form_table"><col width="150px" /><col />';
+			for( a in json)
+			{
+				if(json[a]['if_delivery']==0)
+				{
+					html_va += '<tr><th class="title"><label><input type="radio" name="delivery" id="deli_id'+json[a]['id']+'" onclick="se_price(this.value,'+json[a]['type']+')" value="'+json[a]['id']+','+json[a]['price']+'"/>'+json[a]['name']+'</label></th><td><span id="de_'+json[a]['id']+'">￥'+json[a]['price']+'.00</span><br/>'+json[a]['description']+'</td></tr>';
+				}
+				else
+				{
+					html_va += '<tr><th class="title"><label><input type="radio" name="delivery" id="deli_id'+json[a]['id']+'" onclick="se_price(this.value,'+json[a]['id']+')" value="'+json[a]['id']+',-1"/>'+json[a]['name']+'</label></th><td><span id="de_'+json[a]['id']+'"></span>该地区无法送到<br/>'+json[a]['description']+'</td></tr>';
+				}
+				de_id += json[a]['id']+',';
+			}
+			de_id = de_id.substring(0,de_id.length-1);
+			$("#de_id").val(de_id);//配送方式id字符串
+			html_va += '</table>';
+			$("#tab-4").html(html_va);
+		});
+	}
+	//配送方式价格的选择
+	function se_price(va,type)
+	{
+		//货到付款
+		$('#pay_type').val(type);
+		//如果是货到付款，则将支付方式隐藏，显示货到付款内容
+		if(type == '0')
+		{
+			$('#pay_style').show();
+			$('#pay_show').hide();
+		}
+		else
+		{
+			$('#pay_style').hide();
+			$('#pay_show').show();
+		}
+		//获得配送方式id字符串
+		var de_id = $("#de_id").val().split(',');
+		for(var i=0;i<de_id.length;i++)
+		{
+			var price_num = $("#de_price_num"+de_id[i]).val();
+			if(price_num!='-1' && price_num !=undefined)
+			{
+				$("#de_"+de_id[i]).html('￥'+price_num);
+				$("#deli_id"+de_id[i]).val(de_id[i]+','+price_num);
+			}
+		}
+		var arr = va.split(',');
+		if(arr[1]!='-1')
+		{
+			$("#de_"+arr[0]).html('<input type="text" onblur="sa_price('+arr[0]+',this.value)" name="de_price_num'+arr[0]+'" id="de_price_num'+arr[0]+'" value="'+arr[1]+'" size="5"/>');
+		}
+		$("#delivery_id").val(arr[0]);
+		$("#delivery_price").val(arr[1]);
+		if(arr[1]!='-1')
+		{
+			$("#real_freight").val(arr[1]);
+		}
+		if($('#relieve').val()=='1')
+		{
+			$("#real_freight").val('0');
+		}
+		//计算总价+配送价格 = 订单总价格
+		$("#tab_3").show();
+		$("#td_2").html('￥：'+price_float($("#real_freight").val()));
+		if(arr[1]=='-1')
+		{
+			arr[1] = 0;
+			$("#td_2").html('￥：'+price_float('0'));
+		}
+		order_amount();
+	}
+	function sa_price(id,price)
+	{
+		var de_id = $("#de_id").val().split(',');
+		for(var i=0;i<de_id.length;i++)
+		{
+			var price_num = $("#de_price_num"+de_id[i]).val();
+			if(price_num!='-1' && price_num !=undefined)
+			{
+				$("#de_"+de_id[i]).html('￥'+price_num);
+				$("#deli_id"+de_id[i]).val(de_id[i]+','+price_num);
+			}
+		}
+		$("#delivery_id").val(id);
+		$("#real_freight").val(price);
+		$("#de_"+id).html('￥：'+price_float(price));
+
+		//计算总价+配送价格 = 订单总价格
+		$("#tab_3").show();
+		$("#td_2").html('￥：'+price_float($("#real_freight").val()));
+		if(price=='-1')
+		{
+			price = 0;
+			$("#td_2").html('￥：'+price_float('0'));
+		}
+		order_amount();
+	}
+</script>

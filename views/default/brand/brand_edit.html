@@ -1,0 +1,70 @@
+{js:kindeditor}
+<div class="headbar">
+	<div class="position"><span>商品</span><span>></span><span>品牌管理</span><span>></span><span>{if:isset($brand['id'])}编辑{else:}添加{/if}品牌</span></div>
+</div>
+<div class="content_box">
+	<div class="content form_content">
+		<form action="{url:/brand/brand_save/}" method="post" enctype='multipart/form-data'>
+			<table class="form_table" cellpadding="0" cellspacing="0">
+				<col width="150px" />
+				<col />
+				<tr>
+					<th>品牌名称：</th>
+					<td><input class="normal" name="name" type="text" value="{$brand['name']}" pattern="required" alt="品牌名称不能为空" />
+						<label>*</label>
+						<input name="brand_id" value="{$brand['id']}" type="hidden" />
+					</td>
+				</tr>
+				<tr>
+					<th>排序：</th><td><input class="normal" name="sort" type="text" value="{$brand['sort']}" pattern='int' empty alt='必需为整形数值'/><label>不填写默认为0</label></td>
+				</tr>
+				<tr>
+					<th>网址：</th><td><input class="normal" name="url" type="text" value="{$brand['url']}" pattern='url' empty alt='网址格式不正确' /></td>
+				</tr>
+				<tr>
+					<th>LOGO：</th><td><div>{if:isset($brand['logo'])}<img src="{webroot:$brand[logo]}" height="60px"/><br />{/if}<input type='file' class='normal' name='logo'/></div></td>
+				</tr>
+				<tr>
+					<th>所属分类：</th><td><button type="button" class="btn" id="categoryadd"><span class="add">添 加</span></button></td>
+				</tr>
+				<tr>
+					<th></th>
+					<td>
+						<table id="category_list" cellspacing="0" cellpadding="0" class="border_table" width='80%'>
+							<thead><tr><th>分类名称</th><th>操作</th></tr></thead>
+							<tbody>
+							{if:isset($brand['category_ids'])}
+							{foreach:items=$brand['category_ids'] item=$value}
+							<tr><td><select class="normal" name="category[]">
+									{foreach:items=$brand_category item=$v}
+										<option value="{$v['id']}" {if:$v['id']==$value}selected{/if}>{$v['name']}</option>
+									{/foreach}
+								</select></td><td><img class="operator" src="{skin:images/admin/icon_del.gif}" alt="删除" onclick='deleteItem(this)' /></td></tr>
+							{/foreach}
+							{/if}
+							</tbody>
+						</table>
+					<td>
+				</tr>
+				<tr>
+					<th valign="top">描述：</th><td><textarea name="description" cols="" rows="">{$brand['description']}</textarea></td>
+				</tr>
+				<tr>
+					<td></td><td><button class="submit" type="submit"><span>确 定</span></button></td>
+				</tr>
+			</table>
+		</form>
+	</div>
+</div>
+<script language="javascript">
+	$("#categoryadd").click(
+		function(){
+			var categorySize = $('#category_list tr').size();
+			$("#category_list").append('<tr><td><select class="normal" name="category[]">{foreach:items=$brand_category item=$category}<option value={$category["id"]}>{$category["name"]}</option>{/foreach}</select></td><td><img class="operator" src="{skin:images/admin/icon_del.gif}" alt="删除" onclick="deleteItem(this)" /></td></tr>');
+		}
+	);
+	function deleteItem(obj)
+	{
+		$(obj).parent().parent().remove();
+	}
+</script>

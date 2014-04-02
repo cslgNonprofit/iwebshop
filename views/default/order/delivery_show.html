@@ -1,0 +1,55 @@
+<div class="headbar clearfix">
+	<div class="position">订单<span>></span><span>单据管理</span><span>></span><span>发货单信息</span></div>
+</div>
+<div class="content">
+	<table width="98%" class="border_table" style="margin:10px auto">
+		<tbody>
+			<tr>
+				<th>订单号：</th><td>{$order_no}</td><th>配送方式:</th><td>{$pname}</td><th>订单时间:</th><td>{$create_time}</td>
+			</tr>
+			<tr>
+				<th>操作员：</th><td>{$admin}</td><th>会员名:</th><td>{$username}</td><th>收货人：</th><td>{$name}</td>
+			</tr>
+			<tr>
+				<th>收货地区：</th><td>{$country}</td><th>收货地址:</th><td>{$address}</td><th>邮编:</th><td>{$postcode}</td>
+			</tr>
+			<tr>
+				<th>电话：</th><td>{$telphone}</td><th>手机:</th><td>{$mobile}</td><th>运费:</th><td>{$freight}</td>
+			</tr>
+			<tr>
+				<th>物流单号：</th><td>{$delivery_code}</td><th>生成时间:</th><td colspan="3">{$time}</td>
+			</tr>
+			<tr>
+				<th>备注：</th><td colspan="5">{$note}</td>
+			</tr>
+		</tbody>
+	</table>
+	<table width="98%" class="border_table" style="margin:10px auto">
+		<col />
+		<col width="150px" />
+		<thead>
+			<tr>
+				<th style="text-align:center">商品名称</th>
+				<th style="text-align:center">商品数量</th>
+			</tr>
+		</thead>
+		<tbody>
+			{query: name=order_goods as og join=left join goods as gg on og.goods_id eq gg.id left join products as p on p.id eq og.product_id fields=gg.name as gname,p.spec_array as spec,og.id as ogid,og.goods_array,og.product_id,og.goods_price,og.goods_nums,og.real_price*og.goods_nums as total,og.shipments,og.real_price where=og.order_id eq $order_id}
+			<tr id="a{$item['ogid']}">
+				<td style="text-align:center">
+					{$item['gname']}&nbsp;&nbsp;
+						{if:$item['spec']}
+						{set:$arr = unserialize($item['spec']);}
+						{foreach:items=$arr item=$cc}
+							{query:name=spec fields=name,type where=id eq $cc[id] item=$va}
+								{echo:$va['name']}:{if:$va['type']==1}{$cc['value']}{else:}<img src="{echo:IUrl::creatUrl().$cc['value']}" width="15px" height="15px">{/if}&nbsp;&nbsp;
+							{/query}
+						{/foreach}
+						{/if}
+				</td>
+				<td style="text-align:center">{$item['goods_nums']}</td>
+			</tr>
+			{/query}
+		</tbody>
+	</table>
+</div>

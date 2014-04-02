@@ -1,0 +1,18 @@
+<div class="wrapper clearfix">
+	<div class="wrap_box">
+		<div class="box clearfix">
+			<table class="form_table prompt_3 f_l">
+				<col width="250px" />
+				<col />
+				<tr>
+					<th valign="top"><img src="{skin:images/front/right.gif}" width="48" height="51" alt="" /></th>
+					<td>
+						<p class="mt_10"><strong class="f14">恭喜，操作成功！</strong></p>
+						<p class="mt_10">您的登录用户名为<span class="orange bold">{echo:ISafe::get('username')}</span>，您随时可使用此用户名享受便宜又放心的购物乐趣。</p>
+						<p>您现在可以去：<a class="blue" href="{url:}">商城首页</a><a class="blue" href="{url:/ucenter/info}">用户中心</a>{set:$callback=IReq::get('callback')}<a class="blue" href="{url:$callback}">注册前页面</a></p>
+					</td>
+				</tr>
+			</table>
+		</div>
+	</div>
+</div>

@@ -1,0 +1,162 @@
+{js:kindeditor}
+<div class="headbar">
+	<div class="position"><span>会员</span><span>></span><span>会员管理</span><span>></span><span>{if:isset($member['user_id'])}编辑会员{else:}添加会员{/if}</span></div>
+</div>
+<div class="content_box">
+	<div class="content form_content">
+		<form action="{url:/member/member_save/}" method="post" name="memberForm" onsubmit="return check();">
+			<table class="form_table">
+				<col width="150px" />
+				<col />
+				<tr>
+					<th>用户名：</th>
+					<td>{if:isset($member['user_id'])}
+							{echo:$member['user_name']}
+							<input name="user_name" value="{$member['user_name']}" type="hidden" />
+						{else:}
+						<input class="normal" name="user_name" type="text" value="{$member['user_name']}" pattern="required" alt="用户名不能为空" /><label>* 用户名称（必填）</label>
+						{/if}
+						<input name="user_id" value="{$member['user_id']}" type="hidden" />
+					</td>
+				</tr>
+				<tr>
+					<th>Email：</th><td>{if:isset($member['email'])}{$member['email']}<input type="hidden" name="email" value="{$member['email']}"/>{else:}<input type="text" class="normal" name="email" pattern="email" alt="邮箱错误"/><label>* 邮箱不能为空</label>{/if}</td>
+				</tr>
+				<tr>
+					<th>密码：</th><td><input class="normal" name="password" type="password" /><label>{if:isset($member['user_id'])}不修改密码，请保持为空{else:}* 登录密码（必填）{/if}</label></td>
+				</tr>
+				<tr>
+					<th>确认密码：</th><td><input class="normal" name="repassword" type="password" /><label>确认密码</label></td>
+				</tr>
+				<tr>
+					<th>会员组：</th>
+					<td><select class="normal" name="user_group">
+						<option>请选择</option>
+						{foreach:items=$group item=$value}
+							<option value="{$value['id']}" {if:isset($member['user_group'])&&$value['id']==$member['user_group']}selected{/if}>{$value['group_name']}</option>
+						{/foreach}
+						</select>
+					</td>
+				</tr>
+				<tr>
+					<th>姓名：</th><td><input class="normal" name="truename" type="text" value="{$member['truename']}" /><label>真实姓名</label></td>
+				</tr>
+				<tr>
+					<th>姓别：</th>
+					<td><input class="" name="sex" type="radio" value="1" checked /> 男
+						<input class="" name="sex" type="radio" value="2" {if:isset($member['sex'])&&$member['sex']==2}checked{/if} /> 女
+					</td>
+				</tr>
+				<tr>
+					<th>电话：</th><td><input class="normal" name="telephone" type="text" value="{$member['telephone']}" empty pattern="phone" alt="格式不正确 格式：（地区号-）用户号（-分机号）如010-66668888-123" /><label>格式：（地区号-）用户号（-分机号）如010-66668888-123</label></td>
+				</tr>
+				<tr>
+					<th>手机：</th><td><input class="normal" name="mobile" type="text" value="{$member['mobile']}" empty pattern="mobi" alt="格式不正确" /><label>手机号码</label></td>
+				</tr>
+				<tr>
+					<th>地区：</th><td><select name="province" id="province" onchange="select_city(this.value,2);">
+					<option value="">请选择</option>
+				{query: name=areas where=parent_id eq 0}<option value="{$item['area_id']}" >{$item['area_name']}</option>{/query}
+				</select>
+				<span id="selec2"></span><span id="selec3"></span></td>
+				</tr>
+				<tr>
+					<th>地址：</th><td><input class="normal" name="address" type="text" value="{$member['address']}" /><label>联系地址</label></td>
+				</tr>
+				<tr>
+					<th>邮编：</th><td><input class="normal" name="zip" type="text" value="{$member['zip']}" empty pattern="zip" alt="格式不正确（6位数字）" /><label>邮政编码</label></td>
+				</tr>
+				<tr>
+					<th>QQ：</th><td><input class="normal" name="qq" type="text" value="{$member['qq']}" empty pattern="qq" alt="格式不正确" /><label>QQ号码</label></td>
+				</tr>
+				<tr>
+					<th>MSN：</th><td><input class="normal" name="msn" type="text" value="{$member['msn']}" /></td>
+				</tr>
+				<tr>
+					<th>经验值：</th><td><input class="normal" name="exp" type="text" value="{$member['exp']}" /></td>
+				</tr>
+				<tr>
+					<th>积分：</th><td><input class="normal" name="point" type="text" value="{$member['point']}" /></td>
+				</tr>
+				<tr>
+					<td></td><td><button class="submit" type="submit" onclick="return check()"><span>确 定</span></button></td>
+				</tr>
+			</table>
+		</form>
+	</div>
+</div>
+<script language="javascript">
+function check()
+{
+	var province = $('#province').val();
+	if(province==undefined || province=='')
+	{
+		alert("请选择省份!");
+		return false;
+	}
+	var city = $("#city").val();
+	var area = $("#area").val();
+	if(city==undefined || city=='')
+	{
+		alert("请选择城市!");
+		return false;
+	}
+	if(area==undefined || area=='')
+	{
+		alert('请选择地区!');
+		return false;
+	}
+}
+//城市地区
+function select_city(city,style,current)
+{
+	var arr = city.split(',');
+	$.getJSON("{url:/block/area_child}",{aid:arr[0]}, function(json)
+	{
+		if(style==2)
+		{
+			var select_html = '<select name="city" id="city" onchange="select_city(this.value,3);">';
+			select_html += '<option value="">请选择城市</option>';
+			for( a in json)
+			{
+				if(current == json[a]['area_id'])
+					select_html +='<option value="'+json[a]['area_id']+'" selected="selected">'+json[a]['area_name']+'</option>';
+				else
+					select_html +='<option value="'+json[a]['area_id']+'">'+json[a]['area_name']+'</option>';
+			}
+			select_html +='</select>';
+			$("#selec"+style).html(select_html);
+		}
+		if(style==3)
+		{
+			if(json.length>0)
+			{
+				var select_html = '<select name="area" id="area" onchange="select_city(this.value,4);">';
+				select_html += '<option value="">请选择地区</option>';
+				for( a in json)
+				{
+					if(current == json[a]['area_id'])
+						select_html +='<option value="'+json[a]['area_id']+'" selected="selected">'+json[a]['area_name']+'</option>';
+					else
+						select_html +='<option value="'+json[a]['area_id']+'">'+json[a]['area_name']+'</option>';
+				}
+				select_html +='</select>';
+				$("#selec"+style).show();
+				$("#selec"+style).html(select_html);
+			}
+			else
+			{
+				//if($("#selec"+style).text()=='')
+					$("#selec"+style).hide();
+			}
+		}
+	});
+}
+var formObj = new Form('memberForm');
+formObj.init({
+	'province':'{$province}'
+});
+
+select_city('{$province}',2,'{$city}');
+select_city('{$city}',3,'{$area}');
+</script>

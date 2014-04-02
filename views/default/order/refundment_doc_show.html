@@ -1,0 +1,127 @@
+<div class="headbar clearfix">
+	<div class="position"><span>订单</span><span>></span><span>单据管理</span><span>></span><span>退款单申请信息</span></div>
+</div>
+<table width="90%" class="border_table f_l" style="margin:10px auto">
+	<tbody>
+		<form method="post" action="{url:/order/refundment_doc_show_save}">
+		<tr>
+			<th>订单号：</th><td align="left">{$order_no}<input type="hidden" name="rid" value="{$id}"/></td>
+		</tr>
+		<tr>
+			<th>申请人：</th><td align="left">{query:name=user fields=username where=id eq $user_id}{$item['username']}{/query}</td>
+		</tr>
+		<tr>
+			<th>联系方式：</th><td align="left">{query:name=member fields=mobile where=user_id eq $user_id}{$item['mobile']}{/query}</td>
+		</tr>
+		<tr>
+			<th>退款原因：</th><td align="left">{$content}</td>
+		</tr>
+		<tr>
+			<th>申请时间：</th><td align="left">{$time}</td>
+		</tr>
+		<tr>
+			<th>退款类型：</th><td align="left">{if:$refundment_type==0}退款至账户余额{elseif:$refundment_type==1}退款至银行卡{else:}其它方式{/if}</td>
+		</tr>
+		{if:$refundment_type==1}
+		<tr>
+			<th>开户名：</th><td align="left">{$refundment_username}</td>
+		</tr>
+		<tr>
+			<th>开户行：</th><td align="left">{$refundment_name}</td>
+		</tr>
+		<tr>
+			<th>退款账号：</th><td align="left">{$refundment_account}</td>
+		</tr>
+		{/if}
+		{if:$refundment_type==2}
+		<tr>
+			<th>退款方式：</th><td align="left">{$refundment_name}</td>
+		</tr>
+		<tr>
+			<th>退款账号：</th><td align="left">{$refundment_account}</td>
+		</tr>
+		{/if}
+		<tr>
+			<th>处理:</th><td align="left">
+			{if:$pay_status==0}
+			<label><input type="radio" name="pay_status" value="2" onclick="refund(2);" checked=checked/>同意</label>&nbsp;&nbsp;&nbsp;<label><input type="radio" name="pay_status" onclick="refund(1);" value="1"/>拒绝</label>
+			
+			{else:}
+			<laber>{if:$pay_status==1}拒绝{else:}成功{/if}</laber>
+			{/if}
+			</td>
+		</tr>
+		<tr>
+			<th>处理意见:</th><td align="left"><input type="hidden" id="veri" value="0"/>
+			{if:$pay_status==0}
+			<textarea cols="100" rows="5" name="dispose_idea" id="dispose_idea"></textarea>
+			{else:}
+			{$dispose_idea}
+			{/if}
+			</td>
+		</tr>
+		{if:$pay_status==0}
+		<tr>
+			<td colspan="2"><button type="submit" class="submit" onclick="return checkForm()"><span>确定</span></button></td>
+		</tr>
+		{/if}
+		</form>
+	</tbody>
+</table>
+<script type="text/javascript">
+function refund(va)
+{
+	if(va=='1')
+	{
+		$('#refundme').hide();
+	}else
+	{
+		$('#refundme').show();
+	}
+}
+function refundment(id)
+{
+	var tempUrl = '{url:/order/order_refundment_form/id/@id@/rid/@rid@}';
+	tempUrl     = tempUrl.replace('@id@',id);
+	tempUrl     = tempUrl.replace('@rid@',"{$id}");
+
+	var ref_dialog = art.dialog.open(tempUrl,{
+		id:'refundment',
+		width:'550px',
+		height:'214px',
+		noText:'关闭',
+		yesText:'退款',
+	    title: '订单号:{$order_no}【退款】',
+	    yesFn: function(iframeWin, topWin){
+		   var form = iframeWin.document.getElementById('ref_form');
+		   if(form!=undefined)
+		   {
+			 var amount = iframeWin.$("#amount").val();
+		     if($.trim(amount)=='')
+		     {
+		     	alert('请输入退款金额!');
+			    return false;
+			 }
+			 form.submit();
+		   }
+		   $('#veri').val('1');
+		   this.size(200,60);
+		   this.time('3');
+		   return false;
+	    },
+	    noFn:function (){
+	    	return true;
+		}
+	});
+}
+function checkForm()
+{
+	var veri = $('#veri').val();
+	if(veri==undefined || veri=='0')
+	{
+		var id = '{$order_id}';
+		refundment(id);
+		return false;
+	}
+}
+</script>

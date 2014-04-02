@@ -1,0 +1,34 @@
+<div class="headbar clearfix">
+	<div class="position">订单<span>></span><span>单据管理</span><span>></span><span>退款单信息</span></div>
+</div>
+<table width="90%" class="border_table" style="margin:10px auto">
+	<tbody>
+		<tr>
+			<th>订单号:</th><td>{$order_no}</td>
+		</tr>
+		<tr>
+			<th>退款方式:</th><td>{$pname}</td>
+		</tr>
+		<tr>
+			<th>订单时间:</th><td>{$create_time}</td>
+		</tr>
+		<tr>
+			<th>操作员:</th><td>{query:name=admin where=id eq $admin_id fields=admin_name }{$item['admin_name']}{/query}</td>
+		</tr>
+		<tr>
+			<th>退款账号:</th><td>{$bank_account}</td>
+		</tr>
+		<tr>
+			<th>收款人:</th><td>{$username}</td>
+		</tr>
+		<tr>
+			<th>金额:</th><td>{$amount}</td>
+		</tr>
+		<tr>
+			<th>退款时间:</th><td>{$bank_time}</td>
+		</tr>
+		<tr>
+			<th>退款原因:</th><td>{$content}</td>
+		</tr>
+	</tbody>
+</table>

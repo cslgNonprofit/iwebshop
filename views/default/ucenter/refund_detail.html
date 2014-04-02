@@ -1,0 +1,34 @@
+{set:$info = $this->data}
+<div class="main f_r">
+    <div class="uc_title m_10">
+        <label class="current"><span>退款详情</span></label>
+    </div>
+	<div class="box m_10">
+		<table class="border_table dark_gray" width="100%" cellpadding="0" cellspacing="0">
+			<tr><td style="border-right:0;"><b>涉及订单：</b><span class="light_gray">{$info['order_no']}</span></td><td style="border-left:0">{if:$info['pay_status']==0}<span class="orange bold">正在处理中</span>{elseif:$info['pay_status']==1}<span class="red bold">退款失败</span>{elseif:$info['pay_status']==2}<span class="green bold sel">退款成功</span>{/if}</td></tr>
+			<tr><td style="border-right:0;"><b>申请时间：</b><span class="light_gray">{$info['time']}</span></td><td style="border-left:0"><b>退款金额：</b><span class="red2 bold">{$info['amount']}</span></td></tr>
+			<tr><td colspan="2"><b>备&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;注：</b>{$info['dispose_idea']}</td></tr>
+		</table>
+	</div>
+	<div class="box">
+		<table class="border_table dark_gray" width="100%" cellpadding="0" cellspacing="0">
+			{if:$info['refundment_type']==1}
+			<tr><td colspan="2"><b>开户银行：</b><span class="light_gray">{$info['refundment_name']}</span></td></tr>
+			<tr><td colspan="2"><b>开户人姓名：</b><span class="light_gray">{$info['refundment_username']}</span></td></tr>
+			<tr><td colspan="2"><b>银行账号：</b><span class="light_gray">{$info['refundment_account']}</span></td></tr>
+			<tr><td colspan="2"><b>退款方式：</b><span class="light_gray">退款至银行卡（跨行退款需要扣除一定积分用以支付银行手续费）</span></td></tr>
+            {elseif:$info['refundment_type']==2}
+			<tr><td colspan="2"><b>名称：</b><span class="light_gray">{$info['refundment_name']}</span></td></tr>
+			<tr><td colspan="2"><b>账号：</b><span class="light_gray">{$info['refundment_account']}</span></td></tr>
+            <tr><td colspan="2"><b>退款方式：</b><span class="light_gray">其它退款方式</span></td></tr>
+            {else:}
+            <tr><td colspan="2"><b>退款方式：</b><span class="light_gray">余额支付</span></td></tr>
+            {/if}
+            {if:$info['dispose_time']!=''}
+            <tr><td colspan="2"><b>退款时间：</b><span class="light_gray">{$info['dispose_time']}</span></td></tr>
+            {/if}
+			<tr><td colspan="2"><b>退款原因：</b><span class="light_gray">{$info['content']}</span></td></tr>
+			<tr><td colspan="4" class='t_c'><label class="btn"><input type="button" value="返 回" onclick='event_link("{url:/ucenter/refunds}")'></label></td></tr>
+		</table>
+	</div>
+</div>

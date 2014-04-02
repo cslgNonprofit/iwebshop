@@ -1,0 +1,203 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>管理后台</title>
+<link rel="stylesheet" href="{skin:css/admin.css}" />
+{js:jquery}
+{js:dialog}
+{js:form}
+{js:validate}
+<script type='text/javascript' src="{theme:javascript/admin.js}"></script>
+<script type='text/javascript' src="{theme:javascript/menu.js}"></script>
+</head>
+<body style="width:600px">
+<div class="pop_win" style="width:600px">
+<form action="" method="post" id="list">
+	<table class="spec" width="100%" cellspacing="0" cellpadding="0" border="0" id="list" >
+		<tr>
+			<td>
+				<h3>请选择用户 <button type="button" class="btn f_r" onclick="conversion();"><span class="sel">筛 选</span></button></h3>
+				<div id="specs">
+					<div class="cont" >
+						<ul>
+							{set:$page= (isset($_GET['page'])&&(intval($_GET['page'])>0))?intval($_GET['page']):1;}
+							{query:name=user as u join=join member as m on u.id eq m.user_id page=$page where=$this->where}
+							<li>
+								<label><input type="radio" autocomplete="off" name = "spec" value="{$item['id']},{$item['username']}" />{$item['username']} </label>
+							</li>
+							{/query}
+						</ul>
+					</div>
+
+				{$query->getPageBar()}
+				</div>
+			</td>
+		</tr>
+	</table>
+</form>
+<form action="{url:/}" method="get" name="search_user">
+	<input type='hidden' name='controller' value='order' />
+	<input type='hidden' name='action' value='search_user' />
+	<table class="spec" width="100%" cellspacing="0" cellpadding="0" border="0" id="selec" style="display:none">
+		<tr>
+				<td>
+					<h3>选择筛选用户条件:
+					</h3>
+					<div class="cont">
+					<table class="form_table">
+						<col width="106px" />
+						<col width="120px" />
+						<col width="120px" />
+						<col />
+						<tr>
+							<th>用户名：</th>
+							<td>
+								<select class="middle" id="user_where" name="user_where">
+								<option value="like" {if:$user_where=='like'}selected{/if}>包含</option>
+								<option value="eq" {if:$user_where=='eq'}selected{/if}>等于</option>
+								</select>
+							</td>
+							<td>
+								<input class="small" type="text" id="user" name="user" value="{$user}"/>
+							</td>
+						</tr>
+						<tr>
+							<th>姓名：</th>
+							<td>
+								<select class="middle" id="name_where" name="name_where">
+								<option value="like" {if:$name_where=='like'}selected{/if}>包含</option>
+								<option value="eq" {if:$name_where=='eq'}selected{/if}>等于</option>
+								</select>
+							</td>
+							<td>
+								<input class="small" type="text" id="name"name="name" value="{$name}"/>
+							</td>
+						</tr>
+						<tr>
+							<th>所在地区：</th>
+							<td>
+								<select class="middle" id="province_where" name="province_where">
+								<option value="like" {if:$province_where=='like'}selected{/if}>包含</option>
+								<option value="eq" {if:$province_where=='eq'}selected{/if}>等于</option>
+								</select>
+							</td>
+							<td>{set:$prr = explode(',',$province);}
+								<select name="province" id="province" name="province" onchange="select_city(this.value,2);">
+								<option value="">请选择省份</option>
+								{query: name=areas where=parent_id eq 0}<option value="{$item['area_id']},{$item['area_name']}" {if:($province!='' && ($prr[0]==$item['area_id']))}selected{/if}>{$item['area_name']}</option>{/query}
+								</select>
+								<span id="selec2"></span><span id="selec3"></span>
+							</td>
+						</tr>
+						<tr>
+							<th>手机：</th>
+							<td>
+								<select class="middle" id="mobile_where" name="mobile_where">
+								<option value="like" {if:$mobile_where=='like'}selected{/if}>包含</option>
+								<option value="eq" {if:$mobile_where=='eq'}selected{/if}>等于</option>
+								</select>
+							</td>
+							<td>
+								<input class="small" type="text" id="mobile" name="mobile" value="{$mobile}"/>
+							</td>
+						</tr>
+					</table>
+					</div>
+				</td>
+			</tr>
+		<tr>
+			<td class="t_c">
+				<button type="button" class="submit" onclick="checkForm();"><span>筛选并返回列表</span></button>
+			</td>
+		</tr>
+	</table>
+</form>
+</div>
+<script type="text/javascript">
+function checkForm()
+{
+	document.search_user.submit();
+}
+function conversion()
+{
+	$("#list").toggle();
+	$("#selec").toggle();
+}
+var province_va = '';
+var city_va = '';
+var area_va = '';
+{if:$province!=''}
+province_va = '{$province}';
+city_va = '{$city}';
+area_va = '{$area}';
+{/if}
+if(city_va!='')
+{
+	select_city(province_va,2)
+}
+if(area_va!='')
+{
+	select_city(city_va,3)
+}
+function select_city(city,style)
+{
+	var arr = city.split(',');
+	$.getJSON("{url:/block/area_child}",{aid:arr[0]}, function(json)
+	{
+		if(style==2)
+		{
+			var select_html = '<select name="city" id="city" onchange="select_city(this.value,3);">';
+			select_html += '<option value="">请选择城市</option>';
+			for( a in json)
+			{
+				var va = json[a]['area_id']+','+json[a]['area_name'];
+				if(va==city_va)
+				{
+					select_html +='<option value="'+json[a]['area_id']+','+json[a]['area_name']+'" selected>'+json[a]['area_name']+'</option>';
+				}
+				else
+				{
+					select_html +='<option value="'+json[a]['area_id']+','+json[a]['area_name']+'">'+json[a]['area_name']+'</option>';
+				}
+			}
+			select_html +='</select>';
+			$("#selec3").hide();
+			$("#selec"+style).html(select_html);
+		}else
+		{
+			var select_html = '<select name="area" id="area">';
+			select_html += '<option value="">请选择地区</option>';
+			for( a in json)
+			{
+				var va = json[a]['area_id']+','+json[a]['area_name'];
+				if(va==area_va)
+				{
+					select_html +='<option value="'+json[a]['area_id']+','+json[a]['area_name']+'" selected>'+json[a]['area_name']+'</option>';
+				}
+				else
+				{
+					select_html +='<option value="'+json[a]['area_id']+','+json[a]['area_name']+'">'+json[a]['area_name']+'</option>';
+				}
+			}
+			select_html +='</select>';
+			$("#selec"+style).show();
+			$("#selec"+style).html(select_html);
+		}
+	});
+}
+function increate()
+{
+	var spec = $("input[name='spec']:checked").val();
+	if(spec!='' || spec!=undefined)
+	{
+		var arr = spec.split(",");
+		$("#user_id").val(arr[0]);
+		$("#user_name").val(arr[1]);
+	}
+	art.dialog.close();
+}
+</script>
+</body>
+</html>
+

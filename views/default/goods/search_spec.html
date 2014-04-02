@@ -1,0 +1,324 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" style="overflow-y:auto">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>管理后台</title>
+<link rel="stylesheet" href="{skin:css/admin.css}" />
+{js:jquery}
+{js:dialog}
+{js:form}
+{js:validate}
+<script type='text/javascript' src="{theme:javascript/admin.js}"></script>
+<script type='text/javascript' src="{theme:javascript/menu.js}"></script>
+</head>
+<body style="width:700px;height:450px;">
+<form action="" method="post" id="list">
+	<div class="pop_win" style="width:700px">
+		<input type="hidden" id="iden" value="{$iden}"/>
+		<p>
+		{if:$mark==0}
+		<button type="button" class="btn f_r" onclick="addSpec()"><span class="add">增加规格项</span></button>
+		{else:}
+		<button type="button" class="btn f_r" onclick="editSpec()"><span class="add">增加规格项</span></button>
+		{/if}
+		1、增加规格项或选择规格标签 > 2、添加需要的规格值  > 保存</p>
+		<ul class="tab" name="menu" id="liName" {if:$iden==0}style="display:none;"{/if}>
+			{if:$iden!=0}
+				{set:$i=0;}
+				{foreach:items=$con key=$k}
+					{foreach:items=$item item=$value}
+						{if:$key=='value'}
+						<li id="h{$item['id']}" {if:$i==0} class="selected"{/if}><a href='javascript:void(0)' onclick="selectTab('{$item['id']}');" hidefocus="true" style="display:inline">{$item['name']}</a><label class="radio">&nbsp;&nbsp;<img src="{skin:images/admin/icon_del.gif}" class="delete" title="删除" onclick="return delSpec('{$item['id']}');" /></label></li>
+						{set:$i++;}
+						{/if}
+					{/foreach}
+				{/foreach}
+			{/if}
+			<input type="hidden" name="spec_id" id="spec_id" value="{$spec_id}"/>
+			<div id="hidd_id"></div>
+		</ul>
+		<table class="spec" width="100%" cellspacing="0" cellpadding="0" border="0">
+			<tr>
+				<td id="con">
+				{if:$iden!=0}
+					{set:$j=0;}
+					{foreach:items=$con key=$k}
+						{foreach:items=$item item=$value}
+							{if:$key=='value'}
+								<dl name="con" class="summary clearfix" id="c{$item['id']}" {if:$j!=0} style="display:none;"{/if}>
+									<dt>点击添加所需{$item['name']}：<span>&nbsp;&nbsp;如果没有您需要的{$item['name']}？请到规格列表中编辑{$item['name']}</span></dt>
+									<dd {if:$item['type']==1}class="w_27"{else:}class="w_45"{/if}>
+									{set:$arr = array();$arr = unserialize($item['value']);$name = $item['name']}
+									{if:count($arr)>0}
+										{foreach:items=$arr item=$va}
+											{if:$item['type']==1}
+											<div class="item"><a onclick="selectValue({$item['id']},'{$va}',1,'{$name}');" href="javascript:void(0)" onmouseover="">{$va}</a></div>
+											{else:}
+											<div class="item"><a onclick="selectValue({$item['id']},'{$va}',2,'{$name}');" href="javascript:void(0)"><img src="{webroot:$va}" alt="" width="30px" height="30px"/></a></div>
+											{/if}
+										{/foreach}
+									{/if}
+									</dd>
+								</dl>
+							{set:$j++;}
+							{/if}
+						{/foreach}
+					{/foreach}
+				{/if}
+				</td>
+			</tr>
+			<tr>
+				<td>
+					<div class="cont" id="tab" style="height:220px">
+					{if:$iden!=0}
+						{set:$k=0;}
+						{foreach:items=$con key=$k}
+							{foreach:items=$item item=$value}
+								{if:$key=='value'}
+								<table name="table" class="border_table" id="t{$item['id']}" {if:$k!=0} style="display:none;"{/if}>
+									<thead><tr><th>规格值</th><th>操作</th></tr></thead>
+									<tbody id="b{$item['id']}">
+									</tbody>
+								</table>
+								{set:$k++;}
+								{/if}
+							{/foreach}
+						{/foreach}
+					{else:}
+						<table width="90%" cellspacing="0" cellpadding="0" class="border_table" id="mess">
+							<tbody>
+								<tr><td>{$message}</td></tr>
+							</tbody>
+						</table>
+					{/if}
+					</div>
+				</td>
+			</tr>
+		</table>
+	</div>
+</form>
+
+<script language="javascript">
+//自动生成有多少个隐藏域
+	var ids = '{$spec_id}';
+	ids = ids.substring(0,ids.length-1);
+	var id_arr = ids.split(',');
+	for(var i=0;i<id_arr.length;i++){
+		var html = "<input type='hidden' id='spec"+id_arr[i]+"' name='spec"+id_arr[i]+"' value='' />";
+		$('#hidd_id').append(html);
+	}
+	//给specid赋值
+	{if:isset($sele) && count($sele)>0}
+	{foreach:items=$sele}
+	var id = '{$key}';
+	var spec = $('#spec'+id).val();
+	if(spec!=undefined)
+	{
+		$('#spec'+id).val('{$item}');
+	}
+		//显示
+		{set:$item = rtrim($item,'|');$show_arr = explode('|',$item);}
+		{foreach:items = $show_arr item=$va}
+		{set:$sub_arr = explode(',',$va)}
+		var html = '<tr><td>';
+		{if:$sub_arr[2]=='1'}
+		html += '{$sub_arr[1]}';
+		{else:}
+		html += '<img width="30px" height="30px" src="{webroot:$sub_arr[1]}" class="img_border">';
+		{/if}
+		html += '</td><td>';
+		html += '<img onclick="SpecOrder(0,this,{$sub_arr[0]})" class="operator" src="{skin:images/admin/icon_asc.gif}" alt="向上">';
+		html += '<img onclick="SpecOrder(-1,this,{$sub_arr[0]})" class="operator" src="{skin:images/admin/icon_desc.gif}" alt="向下">';
+		html += '<img onclick="delAttr(this,\'{$sub_arr[1]}\',\'{$sub_arr[0]}\',\'{$sub_arr[2]}\',\'{$sub_arr[3]}\')" class="operator" src="{skin:images/admin/icon_del.gif}" alt="删除"></td></tr>';
+		$('#b'+{$sub_arr[0]}).append(html);
+		{/foreach}
+	{/foreach}
+	{/if}
+	//选择值与内容传入列表
+	var c=0;
+	function selectValue(id,value,type,name)
+	{
+		var spec_id = $('#spec'+id).val();
+		var context = spec_id.substring(0,spec_id.length-1);
+		var arr = context.split('|');
+		for(var i=0;i<arr.length;i++){
+			var aa = value;
+			if(type=='2'){
+				aa = "<img src='"+value+"' width='30px' height='30px'/>";
+			}
+			var vc = id+','+value+','+type+','+name;
+			if(arr[i]==vc){
+				alert('请不要重复添加规格值!');
+				return false;
+			}
+		}
+		var html = '<tr>';
+		if(type=='1')
+		{
+			html += '<td>'+value+'</td>';
+		}
+		else
+		{
+			html += '<td><img class="img_border" src="{webroot:'+value+'}" width="30px" height="30px"/></td>';
+		}
+		html += '<td><img alt="向上" src="{skin:images/admin/icon_asc.gif}" class="operator" onclick="SpecOrder(0,this,'+id+')"/><img alt="向下" src="{skin:images/admin/icon_desc.gif}" class="operator" onclick="SpecOrder(-1,this,'+id+')"/><img alt="删除" src="{skin:images/admin/icon_del.gif}" class="operator" onclick="delAttr(this,\''+value+'\','+id+','+type+',\''+name+'\')"/></td></tr>';
+		$('#b'+id).append(html);
+		spec_id += id+','+value+','+type+','+name+'|';
+		$('#spec'+id).val(spec_id);
+	}
+	//删除规格属性
+	function delAttr(curr_attr,value,id,type)
+	{
+		//获得spec中相关的参数
+		var spec_id = $('#spec'+id).val();
+		var context = spec_id.substring(0,spec_id.length-1);
+		var arr = context.split('|');
+		var dx = 'a';
+		for(var i=0;i<arr.length;i++)
+		{
+			if(arr[i].indexOf(id+','+value+','+type)!=-1)
+			{
+				dx = i;
+			}
+		}
+		if(dx!='a')
+		{
+			//删除数组中的数据
+			arr.remove(dx);
+			$(curr_attr).parent().parent().remove();
+		}
+		if(arr.length>0)
+		{
+			$('#spec'+id).val(arr.join('|')+'|');
+		}
+		else
+		{
+			$('#spec'+id).val('');
+		}
+	}
+	//规格排序
+	function SpecOrder(type,curr,id)
+	{
+		if(type==0)
+		{
+			var insertIndex = $(curr).parent().parent().prev().index();
+			if(insertIndex >= 0)
+			{
+				$('#b'+id+' tr:eq('+insertIndex+')').before($(curr).parent().parent());
+			}
+		}
+		else
+		{
+			var insertIndex = $(curr).parent().parent().next().index();
+			$('#b'+id+' tr:eq('+insertIndex+')').after($(curr).parent().parent());
+		}
+	}
+	//删除数组元素.
+	Array.prototype.remove=function(dx)
+	{
+	    if(isNaN(dx)||dx>this.length){return false;}
+	    for(var i=0,n=0;i<this.length;i++)
+	    {
+	        if(this[i]!=this[dx])
+	        {
+	            this[n++]=this[i]
+	        }
+	    }
+	    this.length-=1
+	}
+	//在数组中获取指定值的元素索引
+	Array.prototype.getIndexByValue= function(value)
+	{
+	    var index = -1;
+	    for (var i = 0; i < this.length; i++)
+	    {
+	        if (this[i] == value)
+	        {
+	            index = i;
+	            break;
+	        }
+	    }
+	    return index;
+	}
+	//删除当前的层
+	function delSpec(id)
+	{
+		//判断用户是添加还是修改商品
+		{if:$mark==1}
+		var spec_va = art.dialog.parent.$('#spec_va').val();
+		if(spec_va!='')
+		{
+			alert('请先删除相关货品再删除该规格!');
+			return false;
+		}
+		{/if}
+		$('li').remove('#h'+id);
+		$('table').remove('#t'+id);
+		$('dl').remove('#c'+id);
+		var obj = $("table[name='table']").first();
+		var c_id = obj.attr("id");
+		if(c_id!=undefined && c_id.length>0)
+		{
+			c_id = c_id.substring(1,c_id.length);
+			selectTab(c_id);
+		}
+		else
+		{
+			$('#liName').hide();
+			var mess = '<table width="90%" cellspacing="0" cellpadding="0" class="border_table"><tbody><tr><td>当前商品类型没有规格,请先添加规格!</td></tr></tbody></table>';
+			$('#tab').html(mess);
+		}
+		//并且删除层的隐藏信息
+		var spec_id = $('#spec_id').val();
+		spec_id = spec_id.substring(0,spec_id.length-1);
+		var arr = spec_id.split(',');
+		var dx = arr.getIndexByValue(id);
+		arr.remove(dx);
+		spec_id = arr.toString()+',';
+		$('#spec_id').val(spec_id);
+		/*****删除*******/
+		$('input').remove('#spec'+id);
+		return false;
+	}
+	//添加模型规格
+	function addSpec()
+	{
+		art.dialog.open('{url:/block/select_spec}', {
+			id:'select_spec',
+			width:'600px',
+			height:'430px',
+		    title: '选择规格'
+		}, true);
+	}
+	//修改商品的时候，添加模型规格
+	function editSpec()
+	{
+		var spec_va = art.dialog.parent.$('#spec_va').val();
+		if(spec_va=='')
+		{
+			art.dialog.open('{url:/block/select_spec}', {
+				id:'select_spec',
+			    title: '选择规格'
+			}, true);
+		}
+		else
+		{
+			alert('请先删除所有货品再添加新的规格!');
+			return false;
+		}
+	}
+	//选择当前Tab
+	function selectTab(curr_tab)
+	{
+		$("table[name='table']").hide();
+		$("#t"+curr_tab).show();
+
+		$("dl[name='con']").hide();
+		$("#c"+curr_tab).show();
+
+		$('ul>li').removeClass('selected');
+		$('#h'+curr_tab).addClass('selected');
+	}
+</script>
+</body>
+</html>

@@ -1,0 +1,602 @@
+<div class="headbar clearfix">
+	<div class="position">订单<span>></span><span>订单管理</span><span>></span><span>订单修改</span></div>
+	<ul class="tab" name="menu">
+		<li id="li_1" class="selected"><a href="javascript:selectTab('1');" hidefocus="true">商品信息</a></li>
+		<li id="li_2"><a href="javascript:selectTab('2');" hidefocus="true">收货人信息</a></li>
+		<li id="li_3"><a href="javascript:selectTab('3');" hidefocus="true">订单信息</a></li>
+		<li id="li_4"><a href="javascript:selectTab('4');" hidefocus="true">用户信息信息</a></li>
+	</ul>
+	<div name="table" class="field">
+		<div class="table_box">
+			<table class="list_table">
+				<col />
+				<col width="100px" />
+				<col width="100px" />
+				<col width="100px" />
+				<col width="100px" />
+				<thead>
+					<tr role="head">
+						<th>商品名称</th>
+						<th>商品价格</th>
+						<th>商品数量</th>
+						<th>合计</th>
+						<th>操作</th>
+					</tr>
+				</thead>
+			</table>
+		</div>
+	</div>
+</div>
+<form name="ModelForm" action="{url:/order/order_save}" method="post" callback="">
+	<div id="tab-1" name="table">
+	<div class="content">
+			<table id="list_table" class="list_table">
+				<col />
+				<col width="100px" />
+				<col width="100px" />
+				<col width="100px" />
+				<col width="100px" />
+				<input type="hidden" id="order_id" name="order_id" value="{$id}"/>
+				<input type="hidden" id="goods_id" name="goods_id" value="{$goods_id}"/>
+				<input type="hidden" id="p_id" name="p_id" value="{$p_id}"/>
+				<input type="hidden" id="price" name="price" value="{$price}"/>
+				<input type="hidden" id="real_price" name="real_price" value="{$real_price}"/>
+				<input type="hidden" id="weight" name="weight" value="{$weight}"/>
+				<input type="hidden" id="total" name="total" value="{$payable_amount}"/>
+				<input type="hidden" id="real_total" name="real_total" value="{$real_amount}"/>
+				<input type="hidden" id="weight_total" name="weight_total" value="{$weight_total}"/>
+				<input type="hidden" id="num" name="num" value="{$num}"/>
+				<input type="hidden" id="number" name="number" value="{$number}"/>
+				<input type="hidden" id="ogid" name="ogid" value="{$ogid}"/>
+				<tbody>
+					{query: name=order_goods as og join=left join goods as gg on og.goods_id eq gg.id left join products as p on p.id eq og.product_id fields=og.id as ogid,gg.id,gg.name as gname,p.spec_array as spec,og.real_price,og.goods_nums,og.real_price*og.goods_nums as total where=og.order_id eq $id}
+					<tr id="a{$item['ogid']}">
+						<td>{$item['gname']}&nbsp;&nbsp;
+						{if:$item['spec']}
+						{set:$arr = unserialize($item['spec']);}
+						{foreach:items=$arr item=$cc}
+							{query:name=spec fields=name,type where=id eq $cc[id] item=$va}
+								{echo:$va['name']}:{if:$va['type']==1}{$cc['value']}{else:}<img src="{echo:IUrl::creatUrl().$cc['value']}" width="15px" height="15px">{/if}&nbsp;&nbsp;
+							{/query}
+						{/foreach}
+						{/if}
+						</td>
+						<td><input class="tiny" id="p{$item['ogid']}" onblur="pri({$item['id']},this.value,{$item['ogid']},'real_price')" value="{$item['real_price']}" /></td>
+						<td><input class="tiny" id="n{$item['ogid']}" onblur="pri({$item['id']},this.value,{$item['ogid']},'goods_nums')" value="{$item['goods_nums']}" /></td>
+						<td id="t{$item['ogid']}">{$item['total']}</td>
+						<td><a href="javascript:void(0)" onclick="del({$item['ogid']},{$item['id']})"><img class="operator" src="{skin:images/admin/icon_del.gif}" alt="删除" /></a></td>
+					</tr>
+					{/query}
+				</tbody>
+			</table>
+		</div>
+	</div>
+	<div id="tab-2" name="table" class="content_box" style="display:none">
+		<div class="content form_content">
+			<table class="form_table">
+				<col width="150px" />
+				<col />
+				<tr>
+					<th>收货人姓名:</th><td><input class="small" type="text" name="accept_name" id="accept_name" value="{$accept_name}" pattern="required" alt="收货人错误"/><label id="accept_span">收货人姓名</label></td>
+				</tr>
+				<tr>
+					<th>收货地区:</th>
+					<td>
+						<select name="province" id="province" onchange="select_city(this.value,2);">
+						<option value="">请选择省份</option>
+						{query: name=areas where=parent_id eq 0}<option value="{$item['area_id']},{$item['area_name']}" {if:$province==$item['area_id']}selected{/if}>{$item['area_name']}</option>{/query}
+						</select>
+						<span id="selec2"></span><span id="selec3"></span>
+					</td>
+				</tr>
+				<tr>
+					<th>收货地址:</th><td><span id="add">[地区]</span><input class="small" type="text" name="address" id="address" pattern="required" value="{$address}"  alt="收货地址错误"/><label>收货地址</label></td>
+				</tr>
+				<tr>
+					<th>联系手机:</th><td><input class="small" type="text" name="mobile" id="mobile" value="{$mobile}" pattern="mobi" maxlength="11"  alt="手机号码错误"/><label>手机号码</label></td>
+				</tr>
+				<tr>
+					<th>联系电话:</th><td><input class="small" type="text" name="telphone" id="telphone" value="{$telphone}" empty alt="请输入正确的固定电话" pattern="phone"/><lable>固定电话</lable></td>
+				</tr>
+				<tr>
+					<th>邮编:</th><td><input class="small" type="text" name="postcode" id="postcode" empty pattern="zip" alt="请输入正确的邮编" maxlength="6" value="{$postcode}"/><lable>邮政编码</lable></td>
+				</tr>
+				<tr>
+					<th>订单附言:</th>
+					<td><textarea rows="5" cols="15" name="postscript" id="postscript">{$postscript}</textarea></td>
+				</tr>
+			</table>
+		</div>
+	</div>
+	<div id="tab-3" name="table" class="content_box" style="display:none">
+		<div class="content form_content">
+			<table class="form_table">
+				<col width="150px" />
+				<col />
+				<tr>
+					<th>订单号:</th><td>{$order_no}</td>
+				</tr>
+				<tr>
+					<th>下单时间:</th><td>{$create_time}</td>
+				</tr>
+				<tr>
+					<th>商品总价:</th><td><input class="small readonly" type="text" readonly name="goods_total" id="goods_total" value="{$real_amount}"/></td>
+				</tr>
+				<tr>
+					<th>配送方式:</th>
+					<td>
+					<select name="distribution" id="distribution" onchange="order_delivery(this.value)" pattern="required" alt="请选择配送方式">
+					<option value="">请选择</option>
+					{query:name=delivery where=is_delete eq 0}
+						<option value="{$item['id']}" {if:$distribution==$item['id']}selected{/if}>{$item['name']}</option>
+					{/query}
+					</select><label>配送方式</label>
+					</td>
+				</tr>
+				<tr>
+					<th>运费:</th><td><input class="small readonly" type="text" readonly name="real_freight" id="real_freight" value="{$real_freight}"/></td>
+				</tr>
+				<input type="hidden" name="pay_type" id="pay_type" value="{$pay_type}"/><!--判断用户选择的配送方式是不是货到付款  -->
+				<tr>
+					<th>支付方式:</th>
+					<td>
+					<select name="pay_type" onchange="pay_fee1(this.value)" >
+						<option value="">请选择</option>
+						{query:name=payment where = status eq 0}
+						<option value="{$item['id']}" {if:$pay_type==$item['id']}selected{/if}>{$item['name']}</option>
+						{/query}
+						{if:$pay_type==0}
+						<option value="0" selected>货到付款</option>
+						{/if}
+					</select><label>支付方式</label>
+					</td>
+				</tr>
+				<tr>
+					<th>支付账号:</th><td><input class="small" type="text" name="pay_code" id="pay_code" value="{$pay_code}"/></td>
+				</tr>
+				<tr>
+					<th>保价:</th><td><input class="small" type="text" name="insured" id="insured" value="{$insured}"/>是否要保价<input type="checkbox" name="if_insured" id="if_insured" value="1"/></td>
+				</tr>
+				<tr>
+					<th>支付手续费:</th><td><input class="small readonly" type="text" name="pay_fee" id="pay_fee" readonly value="{$pay_fee}"/></td>
+				</tr>
+				<tr>
+					<th>发票抬头:</th><td><input class="small" type="text" name="invoice_title" id="invoice_title" value="{$invoice_title}"/></td>
+				</tr>
+				<tr>
+					<th>税金:</th><td><input class="small readonly" type="text" name="taxes" readonly id="taxes" value="{$taxes}"/>是否要发票<input type="checkbox" name="invoice" id="invoice" value="1"/></td>
+				</tr>
+				<tr>
+					<th>优惠促销金额:</th><td><input class="small readonly" type="text" name="promotions" readonly id="promotions" value="{$promotions}"/></td>
+				</tr>
+				<tr>
+					<th>订单折扣或涨价:</th><td><input class="small" type="text" name="discount" id="discount" value="{$discount}"/><span>折扣用"-",涨价用"+"</span></td>
+				</tr>
+				<tr>
+					<th>订单总价:</th><td><input class="small readonly" type="text" readonly name="total_price" id="total_price" value="{$order_amount}"/></td>
+				</tr>
+			</table>
+		</div>
+	</div>
+	<div id="tab-4" name="table" class="content_box" style="display:none">
+		<div class="content form_content">
+			<table class="form_table">
+				<col width="150px" />
+				<col />
+				{query:name=user as u join=left join member as m on m.user_id eq u.id fields=u.username as um,m.true_name,m.mobile as mo,m.zip,m.contact_addr where=u.id eq $user_id /}
+				<tr>
+					<th>姓名:</th><td>{$items[0]['true_name']}</td>
+				</tr>
+				<tr>
+					<th>用户名:</th><td>{$items[0]['um']}</td>
+				</tr>
+				<tr>
+					<th>手机:</th><td>{$items[0]['mo']}</td>
+				</tr>
+				<tr>
+					<th>邮编:</th><td>{$items[0]['zip']}</td>
+				</tr>
+				<tr>
+					<th>地址:</th><td>{$items[0]['contact_addr']}</td>
+				</tr>
+			</table>
+		</div>
+	</div>
+	<div class="pages_bar"><div class="t_c"><button type="submit" class="submit" onclick="checkForm();"><span>保 存</span></button></div></div>
+</form>
+<script type="text/javascript">
+function pay_fee1(va)
+{
+	var total = 0;
+	var real_total = $('#goods_total').val();//应付总金额
+	var real_freight = $('#real_freight').val();//应付运费
+	var taxes = 0;//计算税金
+	var tax = {$tax};
+	if($("#invoice").attr("checked")==true)
+	{
+		taxes = real_total*tax;
+	}
+	total = parseFloat(real_total) + taxes;
+	if(real_freight!='')
+	{
+		total = total + parseFloat(real_freight);
+	}
+	$.get("{url:/order/gePay_fee}",{pid:va,total:total}, function(data)
+   	{
+	   	if(data==null)
+		{
+			data = 0;
+		}
+		$("#pay_fee").val(price_float(data));
+		//显示内容
+		order_total();
+    });
+}
+function checkForm()
+{
+	var city = $("#city").val();
+	var area = $("#area").val();
+	if(city==undefined || city=='')
+	{
+		alert("请选择城市!");
+		return false;
+	}
+	if(area==undefined || area=='')
+	{
+		alert('请选择地区!');
+		return false;
+	}
+	if($("#invoice").attr("checked")==true)
+	{
+		if($('#invoice_title').val()=='')
+		{
+			alert('请输入发票抬头!');
+			$('#invoice_title').focus();
+			return false;
+		}
+	}
+	if($('input').hasClass('small invalid-text'))
+	{
+		selectTab('2');
+		return false;
+	}
+}
+//js返还值
+var form = new Form();
+form.init({invoice:'{$invoice}'},{if_insured:'{$if_insured}'});
+//获得选中的地区名称
+var span_name_one = '',
+span_name_two = '',
+span_name_three = '';
+var province_va = '';
+var city_va = '';
+var area_va = '';
+{if:$province!=''}
+province_va = '{$province}'+','+'{$province_na}';
+city_va = '{$city}'+','+'{$city_na}';
+area_va = '{$area}'+','+'{$area_na}';
+{/if}
+if(city_va!='')
+{
+	select_city(province_va,'2');
+}
+if(area_va!='')
+{
+	select_city(city_va,'3');
+}
+function select_city(city,style)
+{
+	var arr = city.split(',');
+	$.getJSON("{url:/block/area_child}",{aid:arr[0],random:Math.random()}, function(json)
+	{
+		if(style==2)
+		{
+			var select_html = '<select name="city" id="city" onchange="select_city(this.value,3);">';
+			select_html += '<option value="">请选择城市</option>';
+			for( a in json)
+			{
+				if((json[a]['area_id']+','+json[a]['area_name'])==city_va)
+				{
+					select_html +='<option value="'+json[a]['area_id']+','+json[a]['area_name']+'" selected>'+json[a]['area_name']+'</option>';
+				}
+				else
+				{
+					select_html +='<option value="'+json[a]['area_id']+','+json[a]['area_name']+'">'+json[a]['area_name']+'</option>';
+				}
+			}
+			select_html +='</select>';
+			if($("#selec3").text()=='')$("#selec3").hide();
+			$("#selec"+2).html(select_html);
+			span_name_one = arr[1];
+			span_name_two = '';
+			span_name_three = '';
+		}
+		if(style==3)
+		{
+			if(json.length>0)
+			{
+				var select_html = '<select name="area" id="area" onchange="select_city(this.value,4);">';
+				select_html += '<option value="">请选择地区</option>';
+				for( a in json)
+				{
+					if((json[a]['area_id']+','+json[a]['area_name'])==area_va)
+					{
+						select_html +='<option value="'+json[a]['area_id']+','+json[a]['area_name']+'" selected>'+json[a]['area_name']+'</option>';
+						if(area_va!='')
+						{
+							select_city(area_va,4);
+						}
+					}
+					else
+					{
+						select_html +='<option value="'+json[a]['area_id']+','+json[a]['area_name']+'">'+json[a]['area_name']+'</option>';
+					}
+				}
+				select_html +='</select>';
+				$("#selec3").show();
+				$("#selec3").html(select_html);
+			}
+			else
+			{
+				if($("#selec3").text()=='')$("#selec3").hide();
+			}
+			span_name_two = arr[1];
+			span_name_three = '';
+		}
+		if(style==4)
+		{
+			span_name_three = arr[1];
+		}
+
+		$("#add").html(span_name_one+span_name_two+span_name_three);
+		$("#add_name").val(span_name_one+span_name_two+span_name_three);
+	});
+}
+//选择当前Tab
+function selectTab(curr_tab)
+{
+	$("div[name='table']").hide();
+	$("#tab-"+curr_tab).show();
+	$("#admin_right ul > li").removeClass('selected');
+	$('#li_'+curr_tab).addClass('selected');
+	if(curr_tab=="2" || curr_tab=="3" || curr_tab=="4")
+	{
+		$(".field").hide();
+	}
+	else
+	{
+		$(".field").show();
+	}
+}
+//删除浮动层
+function del(oid,id)
+{
+	var goods_id = $('#goods_id').val(),
+		p_id = $('#p_id').val(),
+		price = $('#price').val(),
+		real_price = $('#real_price').val(),
+		weight = $('#weight').val(),
+		payable_amount = $('#total').val(),
+		real_amount = $('#real_total').val(),
+		weight_total = $('#weight_total').val(),
+		num = $('#num').val(),
+		number = $('#number').val(),
+		ogid = $('#ogid').val();
+	var goods_id_arr = goods_id.split(','),
+		p_id_arr = p_id.split(','),
+		price_arr = price.split(','),
+		r_price_arr = real_price.split(','),
+		weight_arr = weight.split(','),
+		num_arr = num.split(','),
+		number_arr = number.split(','),
+		ogid_arr = ogid.split(',');
+	var key = 0;
+	//删除数组函数
+    Array.prototype.remove=function(dx)
+    {
+      if(isNaN(dx)||dx>this.length){return false;}
+      for(var i=0,n=0;i<this.length;i++)
+      {
+          if(this[i]!=this[dx])
+          {
+              this[n++]=this[i]
+          }
+      }
+      this.length-=1
+    }
+    for(var i=0;i<ogid_arr.length;i++)
+	{
+		if(ogid_arr[i]==oid)
+		{
+			key = i;
+		}
+	}
+    //将要删除的重量和价格从总重量和总价格中减去,价格分为应付总价和实付总价
+    payable_amount = parseFloat(payable_amount) - parseFloat(price_arr[key])*parseFloat(number_arr[key]);
+    real_amount = parseFloat(real_amount) - parseFloat(r_price_arr[key])*parseFloat(number_arr[key]);
+    weight_total = parseFloat(weight_total) - parseFloat(weight_arr[key])*parseFloat(number_arr[key]);
+    //删除数组中的值
+    goods_id_arr.remove(key);
+    p_id_arr.remove(key);
+    price_arr.remove(key);
+    r_price_arr.remove(key);
+    weight_arr.remove(key);
+    num_arr.remove(key);
+    number_arr.remove(key);
+    ogid_arr.remove(key);
+    goods_id='';
+	p_id = '';
+	price = '';
+	real_price = '';
+	weight = '';
+	num = '';
+	number = '';
+	ogid = '';
+	for(var i=0;i<goods_id_arr.length;i++)
+	{
+		goods_id += goods_id_arr[i]+',';
+		p_id += p_id_arr[i]+',';
+		price += price_arr[i]+',';
+		real_price += r_price_arr[i]+',';
+		weight += weight_arr[i]+',';
+		num += num_arr[i]+',';
+		number += number_arr[i]+',';
+		ogid += ogid_arr[i]+',';
+	}
+	//ajax删除数据库order_goods中的数据
+	$.get("{url:/order/order_pri_num_del}",{ogid:oid}, function(data){});
+	//将值赋给对象
+ 	$("#goods_id").val(goods_id.substring(0,goods_id.length-1));
+ 	$("#p_id").val(p_id.substring(0,p_id.length-1));
+ 	$("#price").val(price.substring(0,price.length-1));
+ 	$("#real_price").val(real_price.substring(0,real_price.length-1));
+ 	$("#ogid").val(ogid.substring(0,ogid.length-1));
+ 	$("#weight").val(weight.substring(0,weight.length-1));
+ 	$("#num").val(num.substring(0,num.length-1));
+ 	$("#number").val(number.substring(0,number.length-1));
+ 	$("#total").val(payable_amount);
+ 	$("#goods_total").val(price_float(real_amount));
+ 	$("#real_total").val(real_amount);
+ 	$("#weight_total").val(weight_total);
+ 	$('#promotions').val(price_float(payable_amount-real_amount));
+	//删除页面
+	$("#a"+oid).remove();
+	order_delivery('');
+}
+function pri(id,va,ogid,type)
+{
+	var og_id = $('#ogid').val(),
+		price = $("#price").val(),
+		payable_amount = $("#total").val(),
+		og_arr = og_id.split(','),
+		pay_amo_arr = price.split(','),
+		pric_arr = $('#real_price').val().split(','),
+		number_arr = $('#number').val().split(','),
+		total = $('#real_total').val(),
+		weight = $('#weight').val(),
+		weight_arr = weight.split(','),
+		weight_total = $("#weight_total").val(),
+		key = 0;
+	for(var i=0;i<og_arr.length;i++)
+	{
+		if(og_arr[i]==ogid)
+		{
+			key = i;
+		}
+	}
+	//从总价中减去原来的单价*个数
+	total = parseFloat(total)-parseFloat(pric_arr[key])*parseFloat(number_arr[key]);
+	payable_amount = parseFloat(payable_amount)-parseFloat(pay_amo_arr[key])*parseFloat(number_arr[key]);
+	weight_total = parseFloat(weight_total)-parseFloat(weight_arr[key])*parseFloat(number_arr[key]);
+	if(type=='real_price')
+	{
+		pric_arr[key] = va;
+	}
+	else
+	{
+		number_arr[key] = va;
+	}
+	total = parseFloat(total)+parseFloat(pric_arr[key])*parseFloat(number_arr[key]);
+	payable_amount = parseFloat(payable_amount)+parseFloat(pay_amo_arr[key])*parseFloat(number_arr[key]);
+	weight_total = parseFloat(weight_total)+parseFloat(weight_arr[key])*parseFloat(number_arr[key]);
+	//ajax更新数据库中的数据
+	$.get("{url:/order/order_pri_num}",{type:type,va:va,ogid:ogid}, function(data){});
+	var real_price = '';
+	var num = '';
+	var weight = '';
+	var price = '';
+	for(var i=0;i<og_arr.length;i++)
+	{
+		real_price += pric_arr[i]+',';
+		num += number_arr[i]+',';
+		weight += weight_arr[i]+',';
+		price += pay_amo_arr[i]+',';
+	}
+	//将计算的值返回给对象
+	$('#real_total').val(total);
+	$("#goods_total").val(price_float(total));
+	$("#weight_total").val(weight_total);
+	$("#total").val(price_float(payable_amount));
+	$("#price").val(price.substring(0,price.length-1));
+	$('#real_price').val(real_price.substring(0,real_price.length-1));
+	$('#number').val(num.substring(0,num.length-1));
+	$('#weight').val(weight.substring(0,weight.length-1));
+	$('#t'+ogid).html(price_float(pric_arr[key]*number_arr[key]));
+	$('#promotions').val(price_float(payable_amount-total));
+	//运费
+	order_delivery('');
+}
+//配送方式的运费
+function order_delivery(va)
+{
+	var distribution = '{$distribution}';
+	if(va=='')va = distribution;
+	var weight = $("#weight_total").val();
+	var province = $("#province").val();
+	province_arr = province.split(',');
+	$.getJSON("{url:/block/order_delivery}",
+	{province:province_arr[0],weight:weight,random:Math.random()},
+	function(json){
+		var html_va = '<option value="">请选择</option>';
+		var price = 0;
+		for( a in json)
+		{
+			if(json[a]['id']==va)
+			{
+				html_va += '<option value="'+json[a]['id']+'" selected>'+json[a]['name']+'</option>';
+				price = json[a]['price'];
+			}
+			else
+			{
+				html_va += '<option value="'+json[a]['id']+'">'+json[a]['name']+'</option>';
+			}
+		}
+		$('#distribution').html(html_va);
+		$('#real_freight').val(price_float(price));
+		order_total();
+	});
+}
+//计算订单总价=商品总价+运费+保价+支付手续费+税金+优惠促销金额+订单折扣或涨价
+function order_total()
+{
+	var total = $('#goods_total').val();
+	var real_freight = $('#real_freight').val();
+	var insured = $('#insured').val();
+	var pay_fee = $('#pay_fee').val();
+	var taxes = $('#taxes').val();
+	var tax = '{$tax}';
+	if($("#invoice").attr("checked")!=true)
+	{
+		tax = 0;
+	}
+	var discount = $('#discount').val();
+	//订单总价
+	var total_price = 0;
+	total_price = parseFloat(total)+parseFloat(real_freight)+parseFloat(insured)+parseFloat(pay_fee)+(parseFloat(total)*parseFloat(tax))+parseFloat(discount);
+	$('#total_price').val(price_float(total_price));
+	$('#taxes').val(price_float(parseFloat(total)*parseFloat(tax)));
+}
+function price_float(price)
+{
+	if(price.toString().indexOf('.')>0)
+	{
+		var arr = price.toString().split('.');
+		var th = arr[1].substring(2,3);
+		if(parseInt(th)>4)
+		{
+			arr[1] = parseInt(arr[1].substring(0,2))+1
+		}
+		else
+		{
+			arr[1] = parseInt(arr[1].substring(0,2));
+		}
+		price = '';
+		price = arr[0]+'.'+ arr[1];
+	}
+	else
+	{
+		price +='.00';
+	}
+	return price;
+}
+</script>

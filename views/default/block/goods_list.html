@@ -1,0 +1,66 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" style="overflow-y:auto">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title></title>
+<link rel="stylesheet" href="{skin:css/admin.css}" />
+{js:jquery}
+{js:dialog}
+<style type="text/css">.border_table td{ white-space:normal}</style>
+</head>
+<body>
+	<div class="content">
+		<table class="border_table" style='width:96%'>
+			<col width="50px" />
+			<col width="150px" />
+			<col />
+			<tbody>
+				{foreach:items = $this->data}
+				<tr>
+					<td><input type='{echo:($this->type == null) ? 'checkbox' : $this->type}' name='id[]' value='{$item['id']}' /></td>
+					<td><img src="{webroot:$item[list_img]}" width="80px" /></td>
+					<td>{$item['name']}</td>
+				</tr>
+				{/foreach}
+				{if:empty($this->data)}
+				<tr>
+					<td colspan='3'>对不起，没有找到相关商品</td>
+				</tr>
+				{/if}
+			</tbody>
+		</table>
+		<button type='button' class='submit' onclick="{if:empty($this->data)}parent.art.dialog({id:'search_goods'}).size(500,250);window.history.go(-1);{else:}addRelation();{/if}"><span>确定</span></button>
+		<button type='button' class='submit' onclick="closeDialog();"><span>取消</span></button>
+	</div>
+</body>
+
+<script type='text/javascript'>
+
+	//重置dialog高度 并且必要时候出现滚动条
+	var artHeight = window.document.body.clientHeight < 500 ? window.document.body.clientHeight : 500;
+	$('.content').height(artHeight);
+	parent.art.dialog({id:'search_goods'}).size(500,artHeight);
+
+	//确定添加商品
+	function addRelation()
+	{
+		idStr = '';
+		$('input[name="id[]"]:checked').each(
+			function()
+			{
+				if(idStr != '') idStr+=',';
+				idStr+=$(this).val();
+			}
+		);
+
+		//赋值给父窗口的hidden隐藏域
+		jQuery.getJSON('{url:/block/goods_select}',{id_str:idStr},function(c){parent.relationCallBack(c);closeDialog();});
+	}
+
+	//关闭窗口
+	function closeDialog()
+	{
+		parent.art.dialog({id:'search_goods'}).close();
+	}
+</script>
+</html>

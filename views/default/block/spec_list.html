@@ -1,0 +1,155 @@
+<div class="pop_win clearfix" style="width:600px">
+	<table class="spec" width="100%" cellspacing="0" cellpadding="0" border="0">
+		<col width="35%" />
+		<col width="65%" />
+		<tr>
+			<td>
+				<h3>请选择规格</h3>
+				<div class="cont">
+					<ul id="specs">
+						{query: name= spec where=is_del eq 0}
+							<li>
+								<label><input type="radio" autocomplete="off" name = "spec" value="{$item['id']},{$item['name']},{$item['note']}"  onclick="selSpec(this,{$item['id']})" /> {$item['name']} [{$item['note']}]</label>
+							</li>
+						{/query}
+					</ul>
+				</div>
+				<p>没有找到需要的规格？</p>
+				<p><button type="button" class="btn"  onclick="addNewSpec()"><span class="add">添 加</span></button></p>
+			</td>
+			<td>
+				<h4>规格预览区</h4>
+				<div class="cont" style="width:360px;">
+					<p>请在左侧列表选择规格！</p>
+					<ul class="goods_spec_box">
+
+					</ul>
+				</div>
+			</td>
+		</tr>
+		<tr>
+			<td></td>
+			<td class="t_c">
+				<button type="button" class="submit" onclick="insertSpec()"><span>添 加</span></button>
+				<button type="button" class="submit" onclick="javascript:art.dialog({id:'add_spec'}).close();"><span>关 闭</span></button>
+			</td>
+		</tr>
+	</table>
+</div>
+<script type='text/javascript'>
+	//选择规格属性
+	function selSpec(curr_spec,id)
+	{
+		//设置当前选中规格的样式
+		$('ul>li').removeClass('current');
+		$(curr_spec).parent().parent().addClass('current');
+		//Ajax获取规格的详细信息
+		$.ajax({
+			   type: "POST",
+			   url: "{url:/block/spec_value_list}",
+			   data: "id="+id,
+			   dataType: "json",
+			   success: function(data){
+			     if(data)
+			     {
+				     //循环写出规格值
+			    	 var html = "";
+				     for(i=0;i<data['value'].length;i++)
+				     {
+					     if(data['type']=='1')
+				    	 	html += "<li style=\"cursor: default;\"><span>"+data['value'][i]+"</span></li> ";
+					     else
+					    	html += "<li style=\"cursor: default;\"><span><img src='{webroot:}"+data['value'][i]+"' width='45' height='45'/></span></li> ";
+				     }
+				     $(".cont p").html(data['note']);
+				     $(".goods_spec_box").html(html);
+			     }
+			   }
+		});
+	}
+	//插入选中规格值
+	function insertSpec()
+	{
+		//获取选中规格值
+		var spec = $("input[name='spec']:checked").val().split(",");
+		var html = "";
+		var is_exists = false;
+		if(spec)
+		{
+			//判断该规格之前是否被插入
+			$("input[name='spec[id][]']").each(function (i,obj){
+				var spec_id = $(this).val();
+				if(spec_id==spec[0])
+				{
+					is_exists = true;
+				}
+			});
+
+			 //插入商品模型规格值
+			html = "<tr>"+
+						"<td><input name='spec[id][]' class='normal' type='hidden' value="+spec[0]+" />"+spec[1]+" ["+spec[2]+"]"+
+						"<input name='spec[name][]' type='hidden' value='"+spec[1]+"' />"+
+						"<input name='spec[note][]' type='hidden' value='"+spec[2]+"' />"+
+						"</td>"+
+						"<td><select class='middle' name='spec[show_type][]'>"+
+							"<option value = '1'>平铺显示</option>"+
+							"<option value = '2'>下拉显示</option>"+
+						"</select></td>"+
+						"<td><img class='operator' src='{skin:images/admin/icon_asc.gif}' alt='向上'  onclick='SpecOrder(0,this)' />"+
+							"<img class='operator' src='{skin:images/admin/icon_desc.gif}' alt='向下'  onclick='SpecOrder(-1,this)' />"+
+							"<img class='operator' src='{skin:images/admin/icon_del.gif}' alt='删除'  onclick='delAttr(this)' /></td>"+
+					"</tr>";
+		}
+
+		if(is_exists)
+		{
+			//模型规格值已存在，提示框
+			art.dialog('该规格已存在！', function(){});
+		}
+		else
+		{
+			//模型规格不存在，插入新规格，关闭对话框
+			$("#spec_list").append(html);
+			art.dialog({id:'add_spec'}).close();
+		}
+	}
+	//添加新规格
+	function addNewSpec()
+	{
+		art.dialog.open('{url:/block/spec_edit}', {
+			id:'spec_edit',
+			width:600,
+			height:500,
+			lock: true,
+		    title: '添加新规格'
+		}, true);
+	}
+
+	//关闭窗口
+	function closeSpec()
+	{	getSpecList();
+		art.dialog({id:'spec_edit'}).close();
+	}
+	//获取规格列表
+	function getSpecList()
+	{
+		//Ajax获取规格的详细信息
+		$.ajax({
+			   type: "POST",
+			   url: "{url:/block/ajax_spec_list}",
+			   dataType: "json",
+			   success: function(data){
+			     if(data)
+			     {
+				     //循环写出规格值
+			    	 var html = "";
+				     for(i=0;i<data.length;i++)
+				     {
+				    	 html += "<li><label><input type=\"radio\" autocomplete=\"off\" name = \"spec\" value=\""+data[i]['id']+","+data[i]['name']+","+data[i]['note']+"\"  onclick=\"selSpec(this,"+data[i]['id']+")\" /> "+data[i]['name']+" ["+data[i]['note']+"]</label></li>";
+				     }
+				     $("#specs").html(html);
+			     }
+			   }
+		});
+	}
+</script>

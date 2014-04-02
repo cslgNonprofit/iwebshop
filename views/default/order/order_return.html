@@ -1,0 +1,207 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" style="overflow-y:auto">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>管理后台</title>
+<link rel="stylesheet" href="{skin:css/admin.css}" />
+{js:jquery}
+{js:dialog}
+{js:form}
+{js:validate}
+<script type='text/javascript' src="{theme:javascript/admin.js}"></script>
+<script type='text/javascript' src="{theme:javascript/menu.js}"></script>
+</head>
+<body style="width:730px">
+<div class="pop_win">
+<form action="{url:/order/order_return_doc}" method="post" id="return_form" >
+	<table width="90%" class="border_table" style="margin:10px auto">
+		<col width="100px" />
+		<col />
+		<col width="100px" />
+		<col />
+		<tbody>
+			<tr>
+				<th>订单号:</th><td align="left">{$order_no}<input type="hidden" name="order_no" value="{$order_no}"/></td><th>下单时间:</th><td align="left">{$create_time}</td>
+			</tr>
+			<tr>
+				<th>退货原因:</th>
+				<td align="left" colspan="3">
+				<select name="reason">
+					<option value="质量原因">质量原因</option>
+					<option value="无理由">无理由</option>
+					<option value="其他">其他</option>
+				</select>
+				</td>
+			</tr>
+			<tr><input type="hidden" name="id" value="{$order_id}"/><input type="hidden" name="weight_total" id="weight_total" value="{$goods_weight}"/>
+				<th>配送方式:</th><td align="left" ><input type="hidden" name="user_id" value="{$user_id}"/>
+				<select name="delivery_type" id="delivery_type" onchange="order_delivery(this.value)" pattern="required" alt="请选择配送方式">
+					{query:name=delivery where=is_delete eq 0}
+						<option value="{$item['id']}" {if:$distribution==$item['id']}selected{/if}>{$item['name']}</option>
+					{/query}
+					</select></td><th>配送费用:</th><td><input type="text" id="freight" name="freight" value="{$real_freight}"/></td>
+			</tr>
+			<tr>
+				<th>配送单号:</th><td align="left" colspan="3"><input type="text" name="delivery_code"/></td>
+			</tr>
+			<tr>
+				<th>是否保价:</th><td align="left">{if:$if_insured==0}否{else:}是{/if}</td><th>保价费用:</th><td align="left">￥{$insured}</td>
+			</tr>
+			<tr>
+				<th>退货人姓名:</th><td align="left"><input type="text" name="name" id="name" value="{$accept_name}"/></td><th>电话:</th><td align="left"><input type="text" name="telphone" id="telphone" value="{$telphone}"/></td>
+			</tr>
+			<tr>
+				<th>手机:</th><td align="left"><input type="text" name="mobile" id="mobile" value="{$mobile}"/></td><th>邮政编码:</th><td align="left"><input type="text" name="postcode" id="postcode" value="{$postcode}"/></td>
+			</tr>
+			<tr>
+				<th>退货地区:</th>
+				<td align="left" colspan="3"><select name="province" id="province" onchange="select_city(this.value,2);">
+							<option value="">请选择省份</option>
+							{query: name=areas where=parent_id eq 0}<option value="{$item['area_id']}" {if:$province==$item['area_id']}selected{/if}>{$item['area_name']}</option>{/query}
+							</select>
+							<span id="selec2"></span><span id="selec3"></span>
+				</td>
+			</tr>
+			<tr>
+				<th>退货地址:</th><td align="left" colspan="3"><input type="text" name="address" id="address" value="{$address}"/></td>
+			</tr>
+			<tr>
+				<th>退货单备注:</th><td align="left" colspan="3"><textarea name="note" id="note" rows="3" cols="45"> </textarea></td>
+			</tr>
+		</tbody>
+	</table>
+	<table width="90%" class="border_table" style="margin:10px auto">
+		<col />
+		<col width="100px"/>
+		<col width="100px" />
+		<col width="100px" />
+		<col  width="100px" />
+		<thead>
+			<tr><th>商品名称</th><th>商品价格</th><th>购买数量</th><th>已退货</th><th>此单退货</th></tr>
+		</thead>
+		<tbody>
+			{set:$ogid=''}
+			{query: name=order_goods as og join=left join goods as gg on og.goods_id eq gg.id left join products as p on p.id eq og.product_id fields=gg.name as gname,p.spec_array as spec,og.id as ogid,og.product_id,og.goods_price,og.goods_array,og.goods_nums,og.real_price*og.goods_nums as total,og.real_price,og.shipments where=og.order_id eq $order_id}
+				{set:$ogid .=$item['ogid'].',';}
+				<tr>
+					<td style="white-space:normal">
+						{$item['gname']}&nbsp;&nbsp;
+						{if:$item['spec']}
+						{set:$arr = unserialize($item['spec']);}
+						{foreach:items=$arr item=$cc}
+							{query:name=spec fields=name,type where=id eq $cc[id] item=$va}
+								{echo:$va['name']}:{if:$va['type']==1}{$cc['value']}{else:}<img src="{echo:IUrl::creatUrl().$cc['value']}" width="15px" height="15px">{/if}&nbsp;&nbsp;
+							{/query}
+						{/foreach}
+						{/if}
+					</td>
+					<td>{$item['real_price']}</td>
+					<td>{$item['goods_nums']}</td>
+					<td>{$item['shipments']}</td>
+					<td>{$item['goods_nums']}</td>
+				</tr>
+			{/query}
+			<input type="hidden" name="ogid" id="ogid" value="{$ogid}"/>
+		</tbody>
+	</table>
+</form>
+</div>
+<script type="text/javascript">
+var province_va = '';
+var city_va = '';
+var area_va = '';
+{if:$province!=''}
+province_va = '{$province}';
+city_va = '{$city}';
+area_va = '{$area}';
+{/if}
+if(city_va!='')
+{
+	select_city(province_va,'2');
+}
+if(area_va!='')
+{
+	select_city(city_va,'3');
+}
+function select_city(city,style)
+{
+	$.getJSON("{url:/block/area_child}",{aid:city}, function(json)
+	{
+		if(style==2)
+		{
+			var select_html = '<select name="city" id="city" onchange="select_city(this.value,3);">';
+			select_html += '<option value="">请选择城市</option>';
+			for( a in json)
+			{
+				if(json[a]['area_id']==city_va)
+				{
+					select_html +='<option value="'+json[a]['area_id']+','+json[a]['area_name']+'" selected>'+json[a]['area_name']+'</option>';
+				}
+				else
+				{
+					select_html +='<option value="'+json[a]['area_id']+','+json[a]['area_name']+'">'+json[a]['area_name']+'</option>';
+				}
+			}
+			select_html +='</select>';
+			if($("#selec3").text()=='')$("#selec3").hide();
+			$("#selec"+2).html(select_html);
+		}
+		if(style==3)
+		{
+			if(json.length>0)
+			{
+				var select_html = '<select name="area" id="area" onchange="select_city(this.value,4);">';
+				select_html += '<option value="">请选择地区</option>';
+				for( a in json)
+				{
+					if(json[a]['area_id']==area_va)
+					{
+						select_html +='<option value="'+json[a]['area_id']+','+json[a]['area_name']+'" selected>'+json[a]['area_name']+'</option>';
+						if(area_va!='')
+						{
+							select_city(area_va,4);
+						}
+					}
+					else
+					{
+						select_html +='<option value="'+json[a]['area_id']+','+json[a]['area_name']+'">'+json[a]['area_name']+'</option>';
+					}
+				}
+				select_html +='</select>';
+				$("#selec3").show();
+				$("#selec3").html(select_html);
+			}
+			else
+			{
+				if($("#selec3").text()=='')$("#selec3").hide();
+			}
+		}
+	});
+}
+function order_delivery(va)
+{
+	var weight = $("#weight_total").val();
+	var province = $("#province").val();
+	$.getJSON("{url:/block/order_delivery}",
+	{province:province,weight:weight},
+	function(json){
+		var html_va = '<option value="">请选择</option>';
+		var price = 0;
+		for( a in json)
+		{
+			if(json[a]['id']==va)
+			{
+				html_va += '<option value="'+json[a]['id']+'" selected>'+json[a]['name']+'</option>';
+				price = json[a]['price'];
+			}
+			else
+			{
+				html_va += '<option value="'+json[a]['id']+'">'+json[a]['name']+'</option>';
+			}
+		}
+		$('#freight').val(price);
+	});
+}
+</script>
+</body>
+</html>

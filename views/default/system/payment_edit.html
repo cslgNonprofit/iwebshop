@@ -1,0 +1,138 @@
+{js:kindeditor}
+<div class="headbar">
+	<div class="position"><span>系统</span><span>></span><span>支付管理</span><span>></span><span>支付插件配置</span></div>
+</div>
+<div class="content_box">
+	<div class="content form_content">
+		<form action="{url:/system/payment_update/}" method="post" enctype="multipart/form-data">
+			<table class="form_table" cellpadding="0" cellspacing="0">
+				<col width="150px" />
+				<col />
+				<tr>
+					<th>支付方式名称：</th>
+					<td><input class="normal" name="name" type="text" value="{$name}" pattern="required" alt="支付方式名称不能为空！" />
+						<label>*</label>
+					</td>
+				</tr>
+				<tr>
+					<th>支持交易货币：</th>
+					<td>{$SupportCurrency}</td>
+				</tr>
+				 {foreach:items=$attr_list}
+					<tr>
+						<th>{$item['label']}：</th>
+						<td>
+							{if: $item['type']=='string'}
+								<input class="normal" name="setting[{$key}]" type="text" value="{$config[$key]}" pattern="required" alt="{$item['label']}名称不能为空！" />
+							{elseif:$item['type']=='radio'}
+								{foreach: items=$item['options'] item=$option key=$value}
+									<label><input type="radio"  name="setting[{$key}]" value="{$value}" {if:$config[$key]==$value} checked='checked' {/if} onclick="{$item['event']}(this)" />{$option}</label>
+								{/foreach}
+							{elseif:$item['type']=='select'}
+								<select name="setting[{$key}]">
+								{foreach: items=$item['options'] item=$option key=$value}
+									<option value="{$value}" {if:$config[$key]==$value} 'selected' {/if}>{$option}</option>
+								{/foreach}
+								</select>
+							{elseif:$item['type']=='file'}
+								<input type="file" name="config[{$key}]" />
+								<input type="hidden" name="setting[{$key}]" value="{$config[$key]}" />
+							{/if}
+							{$item['eventscripts']}
+						</td>
+					</tr>
+					{if: isset($item['extendcontent'])}
+						{foreach: items=$item['extendcontent'] item=$eitem}
+							<tr id="{$eitem['property']['extconId']}">
+								<th></th>
+								<td>
+									<ul>
+									{foreach: items=$eitem['value'] item=$evitem}
+									<li style="width:10em;float:left;">
+										<input type="{$eitem['property']['type']}" name="setting[{$eitem['property']['name']}][]" value="{$evitem['value']}" {$evitem['checked']} />
+										<img src="{webroot:plugins/payments/images/}{$evitem['imgname']}" />
+									</li>
+									{/foreach}
+									</ul>
+								</td>
+							</tr>
+						{/foreach}
+					{/if}
+				 {/foreach}
+				<tr>
+					<th>手续费设置：</th>
+					<td>
+						<label><input name="poundage_type" type="radio" value="1" {if:$poundage_type==1} checked="checked" {/if}  onclick="radioselect(this)" />按百分比收费</label>
+						<label><input name="poundage_type" type="radio" value="2" {if:$poundage_type==2} checked="checked" {/if} onclick="radioselect(this)" />按固定额度收费</label>
+					</td>
+				</tr>
+				<tr id="poundage_rate"  {if:$poundage_type==2}  style="display:none" {/if}>
+					<th></th>
+					<td>
+						费率：<input class="tiny" name="poundage_rate" type="text" value="{$poundage_rate}"  pattern="required" alt="费率不能为空！" />% &nbsp;&nbsp; 说明：顾客将支付订单总金额乘以此费率作为手续费；
+					</td>
+				</tr>
+				<tr id="poundage_fix" {if:$poundage_type==1}  style="display:none" {/if}>
+					<th></th>
+					<td>
+						金额：<input class="tiny" name="poundage_fix" type="text" value="{$poundage_fix}" pattern="required" alt="金额不能为空！" />元 &nbsp;&nbsp; 说明：顾客每笔订单需要支付的手续费；
+					</td>
+				</tr>
+				<tr>
+					<th>类型：</th>
+					<td>
+						<select name="type" pattern='required'>
+							<option value=''>请选择支付类型</option>
+							{if:$file_path != 'offline'}
+							<option {if:$type=='1'}selected=selected{/if} value="1">线上支付</option>
+							{/if}
+							<option {if:$type=='2'}selected=selected{/if} value="2">线下支付</option>
+						</select>
+					</td>
+				</tr>
+				<tr>
+					<th>排序：</th><td><input class="tiny" name="order" type="text" value="{$order}" pattern="required" alt="排序不能为空！" /></td>
+				</tr>
+				<tr>
+					<th valign="top">描述：</th>
+					<td><textarea name="description" rows="10" cols="25">{$description}</textarea></td>
+				</tr>
+				<tr>
+					<th>支付说明：</th>
+					<td><textarea id="note" name="note" style="width:530px;height:250px;visibility:hidden;">{$note}</textarea>
+						<label>此信息会展示在用户的支付页面，尤其是线下支付时可以填写收款账号等信息</label>
+					</td>
+				</tr>
+				<tr>
+					<th></th>
+					<td>
+						<input type="hidden" name="pay_type" value="{$file_path}" />
+						<input type="hidden" name="id" value="{$plugin_id}" />
+						<input type="hidden" name="pay_id" value="{$pay_id}" />
+						<button class="submit" type='submit'><span>确 定</span></button>
+					</td>
+				</tr>
+			</table>
+		</form>
+	</div>
+</div>
+<script language="javascript">
+	KE.show({
+		id : 'note',
+		imageUploadJson:'{url:/block/upload_img_from_editor}'
+	});
+
+	function radioselect(obj)
+	{
+		if(obj.value==1)
+		{
+			$('#poundage_rate').show();
+			$('#poundage_fix').hide();
+		}
+		else
+		{
+			$('#poundage_fix').show();
+			$('#poundage_rate').hide();
+		}
+	}
+</script>

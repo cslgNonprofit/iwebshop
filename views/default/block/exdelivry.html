@@ -1,0 +1,14 @@
+<div class="result">
+	<div class="txtAboutSnap">
+		<p>快递跟踪：</p>
+		<div id="retData">
+		{echo:$conent}
+		</div>
+	</div>
+</div>
+{if:$type=='1'}
+<script type="text/javascript">
+	parent.art.dialog({id:'exdelivry'}).size('300','100')
+</script>
+{/if}
+

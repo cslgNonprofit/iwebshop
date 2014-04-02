@@ -1,0 +1,205 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>管理后台</title>
+<link rel="stylesheet" href="{skin:css/admin.css}" />
+{js:jquery}
+{js:dialog}
+{js:form}
+{js:validate}
+<script type='text/javascript' src="{theme:javascript/admin.js}"></script>
+<script type='text/javascript' src="{theme:javascript/menu.js}"></script>
+</head>
+<body style="width:600px">
+<div class="pop_win" style="width:600px">
+	<table class="spec" width="100%" cellspacing="0" cellpadding="0" border="0">
+		<col width="35%" />
+		<col width="65%" />
+		<tr>
+			<td>
+				<h3>请选择规格</h3>
+				<div class="cont">
+					<ul id="specs">
+						{query: name=spec where= is_del eq 0 }
+							<li>
+								<label><input type="radio" autocomplete="off" name = "spec" value="{$item['id']},{$item['name']}"  onclick="selSpect(this,{$item['id']})" /> {$item['name']} [{$item['note']}]</label>
+							</li>
+						{/query}
+					</ul>
+					<input type="hidden" id="new_spec" value=""/>
+				</div>
+				<p>没有找到需要的规格？</p>
+				<p><button type="button" class="btn"  onclick="addNewSpec()"><span class="add">添 加</span></button></p>
+			</td>
+			<td>
+				<h4>规格预览区</h4>
+				<div class="cont" style="width:360px;">
+					<p>请在左侧列表选择规格！</p>
+					<ul class="goods_spec_box">
+
+					</ul>
+				</div>
+			</td>
+		</tr>
+		<tr>
+			<td></td>
+			<td class="t_c">
+				<button type="button" class="submit" onclick="insertSpec()"><span>添 加</span></button>
+				<button type="button" class="submit" onclick="javascript:art.dialog.close();"><span>关 闭</span></button>
+			</td>
+		</tr>
+	</table>
+</div>
+<script type='text/javascript'>
+	/**insertSpec 4、在con中加入新的dl*****/
+	var con = '';
+	//选择规格属性
+	function selSpect(curr_spec,id)
+	{
+		//设置当前选中规格的样式
+		$('ul>li').removeClass('current');
+		$(curr_spec).parent().parent().addClass('current');
+		//Ajax获取规格的详细信息
+		$.ajax({
+			   type: "POST",
+			   url: "{url:/block/spec_value_list}",
+			   data: "id="+id,
+			   dataType: "json",
+			   success: function(data){
+			     if(data)
+			     {
+				     //添加新规格的名称
+				     var new_spec = $('#new_spec').val();
+				     //循环写出规格值
+			    	 var html = "";
+			    	 con = '';
+			    	 con = '<dl id="c'+id+'" class="summary clearfix" name="con" style="display: none;"><dt>点击添加所需'+data['name']+'：<span>&nbsp;&nbsp;如果没有您需要的'+data['name']+'？请到规格列表中<a href="javascript:void(0);">编辑'+data['name']+'</a>';
+					 con += '</span></dt>';
+					 if(data['type']=='1')
+					 {
+						 con += '<dd class="w_27">';
+					 }
+					 else
+					 {
+						 con += '<dd class="w_45">';
+					 }
+					 var name = data['name'];
+				     for(i=0;i<data['value'].length;i++)
+				     {
+					     var va = data['value'][i];
+					     if(data['type']=='1')
+					     {	html += "<li style=\"cursor: default;\"><span>"+va+"</span></li> ";
+					     	new_spec += data['value'][i]+'|1,';
+					     	con += '<div class="item" height="23px"><a onmouseover="" href="javascript:void(0)" onclick="selectValue('+id+',\''+va+'\','+data['type']+',\''+name+'\');">'+va+'</a></div>';
+					     }
+					     else
+					     {	html += "<li style=\"cursor: default;\"><span class=\"pic\"><img src='{webroot:}"+va+"' width='30px' height='30px'/></span></li> ";
+					     	new_spec += "<img src='"+va+"' width='30px' height='30px'/>"+'|2,';
+
+					     	con += '<div class="item"><a onmouseover="" href="javascript:void(0)" onclick="selectValue('+id+',\''+va+'\','+data['type']+',\''+name+'\')">';
+							con += "<img width='30px' height='30px' alt='' src='{webroot:}"+va+"'></a></div>";
+					     }
+				     }
+				     con += '</dd></dl>';
+				     $(".cont p").html(data['note']);
+				     $(".goods_spec_box").html(html);
+				     $('#new_spec').val(new_spec);
+			     }
+			   }
+		});
+	}
+	//插入选中规格值
+	function insertSpec()
+	{
+		//获取选中规格值
+		var va = $("input[name='spec']:checked").val();
+		if(va=='')
+		{
+			alert('请选择规格!');
+			return false;
+		}
+		var spec = va.split(",");
+		var html = "";
+		var is_exists = false;
+		if(spec)
+		{
+			//获得原来已有的规格值，判断该规格之前是否被插入
+			var spec_id = art.dialog.parent.$('#spec_id').val();
+			if(spec_id!=undefined)
+			{
+				var spec_arr =  spec_id.substring(0,spec_id.length-1);
+				var arr = spec_arr.split(',');
+				for(var i=0;i<arr.length;i++)
+				{
+					if(arr[i]==spec[0])
+					{
+						//模型规格值已存在，提示框
+						art.dialog('该规格已存在！', function(){});
+						return false;
+					}
+				}
+			}
+			 //插入商品规格相关内容
+			 /**1、在spec_id中加入相关ID*****/
+			spec_id += spec[0]+',';
+			/**2、在hidd_id中加入新的hidden*****/
+			var hidden = '<input id="spec'+spec[0]+'" type="hidden" value="" name="spec'+spec[0]+'">';
+			/**3、在liName中加入新的li*****/
+			var liName = '<li id="h'+spec[0]+'" class=""><a href="javascript:void(0)" onclick="selectTab(\''+spec[0]+'\');" hidefocus="true" style="display:inline">'+spec[1]+'</a>';
+			liName += '<label class="radio">&nbsp;&nbsp;';
+			liName += '<img class="delete" onclick="return delSpec(\''+spec[0]+'\');" title="删除" src="{skin:images/admin/icon_del.gif}">';
+			liName += '</label></li>';
+			/**4、在con中加入新的dl*****/
+
+			/**5、在tab中加入新的table*****/
+			var table = '<table id="t'+spec[0]+'" class="border_table" style="display: none;" name="table"><thead><tr><th>规格值</th><th>操作</th></tr></thead><tbody id="b'+spec[0]+'"></tbody></table>';
+			//插入新规格，关闭对话框
+			art.dialog.parent.$('#spec_id').val(spec_id);
+			art.dialog.parent.$('#hidd_id').append(hidden);
+			art.dialog.parent.$('#liName').show();
+			art.dialog.parent.$('#liName').append(liName);
+			art.dialog.parent.$('#con').append(con);
+			art.dialog.parent.$('#mess').hide();
+			art.dialog.parent.$('#tab').append(table);
+			$("#spec_list").append(html);
+			//最后调用切换tab函数
+			art.dialog.parent.selectTab(spec[0]);
+			art.dialog.close();
+		}
+	}
+	//添加新规格
+	function addNewSpec()
+	{
+		art.dialog.open('{url:/block/spec_edit}', {
+			id:'spec_edit',
+			width:'600px',
+			height:'500px',
+		    title: '添加新规格'
+		});
+	}
+	//获取规格列表
+	function getSpecList()
+	{
+		//Ajax获取规格的详细信息
+		$.ajax({
+		   type: "POST",
+		   url: "{url:/block/ajax_spec_list}",
+		   dataType: "json",
+		   success: function(data){
+		     if(data)
+		     {
+			     //循环写出规格值
+		    	 var html = "";
+			     for(i=0;i<data.length;i++)
+			     {
+			    	 html += "<li><label><input type=\"radio\" autocomplete=\"off\" name = \"spec\" value=\""+data[i]['id']+","+data[i]['name']+","+data[i]['note']+"\"  onclick=\"selSpect(this,"+data[i]['id']+")\" /> "+data[i]['name']+" ["+data[i]['note']+"]</label></li>";
+			     }
+			     $("#specs").html(html);
+		     }
+		   }
+		});
+	}
+</script>
+</body>
+</html>

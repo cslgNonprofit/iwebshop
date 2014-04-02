@@ -1,0 +1,70 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" style="overflow-y:auto">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>管理后台</title>
+<link rel="stylesheet" href="{skin:css/admin.css}" />
+{js:jquery}
+{js:dialog}
+{js:form}
+{js:validate}
+<script type='text/javascript' src="{theme:javascript/admin.js}"></script>
+<script type='text/javascript' src="{theme:javascript/menu.js}"></script>
+</head>
+<body style="width:600px">
+<div class="pop_win">
+<form action='{url:/goods/upload_csv}' method='post' enctype='multipart/form-data' name="import_csv">
+	<table width="90%" class="border_table" style="margin:10px auto">
+		<col width="100px" />
+		<col width="100px" />
+		<tbody>
+			<tr>
+				<th>数据格式</th>
+				<td style="text-align:left;">
+					<select name="date_format" id="date_format" onchange="check(this)">
+						<option value="0">请选择...</option>
+						<option value="goods_csv">iWebShop CSV格式</option>
+						<option value="taobao_csv">淘宝助理    CSV格式</option>
+					</select>
+				</td>
+			</tr>
+			<tr>
+				<th>上传CSV</th><td style="text-align:left;"><input class="normal" name="attach[]" type="file" id="upload_file"/></td>
+			</tr>
+			<tr id="select_id">
+				<th></th><td style="text-align:left;"><label><input type="radio" name="marked" value="1" checked/>覆盖重复数据</label><label><input type="radio" name="marked" value="2"/>不覆盖重复数据</label></td>
+			</tr>
+			<tr>
+				<td></td><td><button class="submit" type="submit" onclick="return check_submit();"><span>上传</span></button></td>
+			</tr>
+		</tbody>
+	</table>
+</form>
+</div>
+<script type="text/javascript">
+function check_submit()
+{
+	var format = $('#date_format').val();
+	if(format=='0')
+	{
+		alert('请选择数据格式!');
+		return false;
+	}
+	var upload_file = $('#upload_file').val();
+	if(upload_file=='')
+	{
+		alert('请选择CSV文件!');
+		return false;
+	}
+}
+function check(obj)
+{
+	$('#select_id').show();
+	if(obj.value=='taobao_csv')
+	{
+		$('#select_id').hide();
+	}
+}
+</script>
+</body>
+</html>

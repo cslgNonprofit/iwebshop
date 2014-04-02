@@ -1,0 +1,698 @@
+<div class="headbar clearfix">
+	<div class="position">订单<span>></span><span>订单管理</span><span>></span><span>订单查看</span></div>
+	<ul class="tab" name="menu1">
+		<li id="li_1" class="selected"><a href="javascript:selectTab('1');" hidefocus="true">基本信息</a></li>
+		<li id="li_2"><a href="javascript:selectTab('2');" hidefocus="true">商品</a></li>
+		<li id="li_3"><a href="javascript:selectTab('3');" hidefocus="true">收退款记录</a></li>
+		<li id="li_4"><a href="javascript:selectTab('4');" hidefocus="true">收发货记录</a></li>
+		<li id="li_5"><a href="javascript:selectTab('5');" hidefocus="true">优惠方案</a></li>
+		<li id="li_6"><a href="javascript:selectTab('6');" hidefocus="true">订单备注</a></li>
+		<li id="li_7"><a href="javascript:selectTab('7');" hidefocus="true">订单日志</a></li>
+		<li id="li_8"><a href="javascript:selectTab('8');" hidefocus="true">订单附言</a></li>
+	</ul>
+	<div id="field" name="table" class="field">
+		<div class="table_box">
+			<table class="list_table">
+				<col width="500px" />
+				<col width="100px" />
+				<col width="100px" />
+				<col width="100px" />
+				<col />
+				<thead>
+					<tr role="head">
+						<th>商品名称</th>
+						<th>商品价格</th>
+						<th>优惠价格</th>
+						<th>商品数量</th>
+						<th>合计</th>
+					</tr>
+				</thead>
+			</table>
+		</div>
+	</div>
+</div>
+<div id="tab-1" name="table">
+	<div class="content">
+			<table id="list_table" class="list_table">
+				<col width="500px" />
+				<col width="100px" />
+				<col width="100px" />
+				<col width="100px" />
+				<col />
+				<tbody>
+					{query: name=order_goods as og join=left join goods as gg on og.goods_id eq gg.id left join products as p on p.id eq og.product_id fields=gg.name as gname,p.spec_array as spec,og.id as ogid,og.product_id,og.goods_price,og.real_price,og.goods_nums,og.real_price*og.goods_nums as total,og.real_price,og.goods_array where=og.order_id eq $order_id}
+					<tr id="a{$item['ogid']}">
+						<td>{$item['gname']}&nbsp;&nbsp;
+						{if:$item['spec']}
+						{set:$arr = unserialize($item['spec']);}
+						{foreach:items=$arr item=$cc}
+							{query:name=spec fields=name,type where=id eq $cc[id] item=$va}
+								{echo:$va['name']}:{if:$va['type']==1}{$cc['value']}{else:}<img class="img_border" src="{echo:IUrl::creatUrl().$cc['value']}" width="15px" height="15px">{/if}&nbsp;&nbsp;
+							{/query}
+						{/foreach}
+						{/if}
+						</td>
+						<td>{$item['goods_price']}</td>
+						<td>{$item['real_price']}</td>
+						<td>{$item['goods_nums']}</td>
+						<td>{$item['total']}</td>
+					</tr>
+					{/query}
+				</tbody>
+			</table>
+			<table width="290" class="border_table f_l">
+				<col width="80px" />
+				<col />
+				<thead>
+					<tr><th colspan="2">商品价格</th></tr>
+				</thead>
+				<tbody>
+					<tr>
+						<th>商品总额:</th><td>￥{$payable_amount}</td>
+					</tr>
+					<tr>
+						<th>配送费用:</th><td>￥{$payable_freight}</td>
+					</tr>
+					<tr>
+						<th>保价费用:</th><td>￥{$insured}</td>
+					</tr>
+					<tr>
+						<th>税金:</th><td>￥{$taxes}</td>
+					</tr>
+					<tr>
+						<th>优惠总额:</th><td>￥{$promotions}</td>
+					</tr>
+					<tr>
+						<th>订单总额:</th><td>￥{$order_amount}</td>
+					</tr>
+					<tr>
+						<th>已支付金额:</th><td>{query:name=collection_doc where=order_id eq $order_id and if_del eq 0 fields=amount}￥{$item['amount']}{/query}</td>
+					</tr>
+				</tbody>
+			</table>
+			<table width="290" class="border_table f_l">
+				<col width="80px" />
+				<col />
+				<thead>
+					<tr><th colspan="2">订单其他信息</th></tr>
+				</thead>
+				<tbody>
+					<tr>
+						<th>配送方式:</th><td>{$delivery}</td>
+					</tr>
+					<tr>
+						<th>配送保价:</th><td>{if:$if_insured==0}不保价{else:}保价{/if}</td>
+					</tr>
+					<tr>
+						<th>商品重量:</th><td>{$goods_weight}</td>
+					</tr>
+					<tr>
+						<th>支付方式:</th><td>{$payment}</td>
+					</tr>
+					<tr>
+						<th>是否开票:</th><td>{if:$invoice==0}否{else:}是{/if}</td>
+					</tr>
+					<tr>
+						<th>发票抬头:</th><td>{$invoice_title}</td>
+					</tr>
+					<tr>
+						<th>可得积分:</th><td>{$point}</td>
+					</tr>
+				</tbody>
+			</table>
+			<table width="290" class="border_table f_l">
+				<col width="80px" />
+				<col />
+				<thead>
+					<tr><th colspan="2">收货人信息</th></tr>
+				</thead>
+				<tbody>
+					<tr>
+						<th>发货日期:</th><td>{$send_time}</td>
+					</tr>
+					<tr>
+						<th>姓名:</th><td>{$accept_name}</td>
+					</tr>
+					<tr>
+						<th>电话:</th><td>{$telphone}</td>
+					</tr>
+					<tr>
+						<th>手机 :</th><td>{$mobile}</td>
+					</tr>
+					<tr>
+						<th>地区:</th><td>{$area_addr}</td>
+					</tr>
+					<tr>
+						<th>地址:</th><td>{$address}</td>
+					</tr>
+					<tr>
+						<th>邮编:</th><td>{$postcode}</td>
+					</tr>
+					<tr>
+						<th>送货时间:</th><td>{$accept_time}</td>
+					</tr>
+				</tbody>
+			</table>
+			<table width="290" class="border_table f_l">
+				<col width="80px" />
+				<col />
+				<thead>
+					<tr><th colspan="2">购买人信息</th></tr>
+				</thead>
+				<tbody>
+					<tr>
+						<th>用户名:</th><td>{$username}</td>
+					</tr>
+					<tr>
+						<th>姓名:</th><td>{$true_name}</td>
+					</tr>
+					<tr>
+						<th>电话:</th><td>{$u_mobile}</td>
+					</tr>
+					<tr>
+						<th>地区:</th><td>{$contact_addr}</td>
+					</tr>
+					<tr>
+						<th>Email:</th><td>{$email}</td>
+					</tr>
+				</tbody>
+			</table>
+		</div>
+	</div>
+	<div id="tab-2" name="table" style="display:none">
+		<div class="content">
+			<table class="list_table">
+				<col width="500px" />
+				<col width="100px" />
+				<col width="100px" />
+				<col width="100px" />
+				<col />
+				<tbody>
+					{query: name=order_goods as og join=left join goods as gg on og.goods_id eq gg.id left join products as p on p.id eq og.product_id fields=gg.name as gname,p.spec_array as spec,og.id as ogid,og.product_id,og.goods_price,og.goods_nums,og.real_price*og.goods_nums as total,og.shipments,og.real_price,og.goods_array where=og.order_id eq $order_id}
+					<tr id="a{$item['ogid']}">
+						<td>{$item['gname']}&nbsp;&nbsp;
+							{if:$item['spec']}
+							{set:$arr = unserialize($item['spec']);}
+							{foreach:items=$arr item=$cc}
+								{query:name=spec fields=name,type where=id eq $cc[id] item=$va}
+									{echo:$va['name']}:{if:$va['type']==1}{$cc['value']}{else:}<img class="img_border" src="{echo:IUrl::creatUrl().$cc['value']}" width="15px" height="15px">{/if}&nbsp;&nbsp;
+								{/query}
+							{/foreach}
+							{/if}
+						</td>
+						<td>{$item['real_price']}</td>
+						<td>{$item['goods_nums']}</td>
+						<td>{$item['total']}</td>
+						<td>{$item['shipments']}</td>
+					</tr>
+					{/query}
+				</tbody>
+			</table>
+		</div>
+	</div>
+	<div id="tab-3" name="table" style="display:none">
+		<div class="content">
+			<table width="600" class="border_table f_l">
+				<col width="80px" />
+				<col />
+				<thead>
+					<tr><th colspan="4">收款单据列表</th></tr>
+				</thead>
+				<tbody>
+					<tr><th style="text-align:center">时间</th><th style="text-align:center">金额</th><th style="text-align:center">支付方式</th><th style="text-align:center">状态</th></tr>
+					{query: name=collection_doc as c join=left join payment as p on c.payment_id eq p.id where=c.order_id eq $order_id}
+					<tr>
+						<td>{$item['time']}</td>
+						<td>{$item['amount']}</td>
+						<td>{$item['name']}</td>
+						<td>{if:$item['pay_status']==0}准备中{else:}支付完成{/if}</td>
+					</tr>
+					{/query}
+				</tbody>
+			</table>
+			<table width="600" class="border_table f_l">
+				<col width="80px" />
+				<col />
+				<thead>
+					<tr><th colspan="4">退款单价列表</th></tr>
+				</thead>
+				<tbody>
+					<tr><th style="text-align:center">时间</th><th style="text-align:center">金额</th><th style="text-align:center">支付方式</th><th style="text-align:center">状态</th></tr>
+					{query: name=refundment_doc as r join=left join payment as p on r.refundment_name eq p.id where=r.order_id eq $order_id}
+					<tr>
+						<td>{$item['time']}</td>
+						<td>{$item['amount']}</td>
+						<td>{$item['name']}</td>
+						<td>{if:$item['pay_status']==0}准备中{else:}退款完成{/if}</td>
+					</tr>
+					{/query}
+				</tbody>
+			</table>
+		</div>
+	</div>
+	<div id="tab-4" name="table" style="display:none">
+		<div class="content">
+			<table width="600" class="border_table f_l">
+				<col width="80px" />
+				<col />
+				<thead>
+					<tr><th colspan="5">发货单据列表</th></tr>
+				</thead>
+				<tbody>
+					<tr><th style="text-align:center">时间</th><th style="text-align:center">发货单号</th><th style="text-align:center">物流单号</th><th style="text-align:center">收件人</th><th style="text-align:center">配送方式</th></tr>
+					{query: name=delivery_doc as c join=left join delivery as p on c.delivery_type eq p.id fields=c.time,c.id,c.delivery_code,c.name,p.name as pname where=c.order_id eq $order_id}
+					<tr>
+						<td>{$item['time']}</td>
+						<td>{$item['id']}</td>
+						<td>{$item['delivery_code']}</td>
+						<td>{$item['name']}</td>
+						<td>{$item['pname']}</td>
+					</tr>
+					{/query}
+				</tbody>
+			</table>
+			<table width="600" class="border_table f_l">
+				<col width="80px" />
+				<col />
+				<thead>
+					<tr><th colspan="5">退货单价列表</th></tr>
+				</thead>
+				<tbody>
+					<tr>
+						<th style="text-align:center">时间</th>
+						<th style="text-align:center">发货单号</th>
+						<th style="text-align:center">物流单号</th>
+						<th style="text-align:center">退货人</th>
+						<th style="text-align:center">配送方式</th>
+					</tr>
+					{query: name=returns_doc as r join=left join delivery as p on r.delivery_type eq p.id fields=r.user_id,r.time,r.delivery_code,r.id as rid,p.name as pname where=r.order_id eq $order_id}
+					<tr>
+						<td>{$item['time']}</td>
+						<td>{$item['rid']}</td>
+						<td>{$item['delivery_code']}</td>
+						<td>
+						{query:name=user fields=username where=id eq $item[user_id] item=$va}
+							{$va['username']}
+						{/query}
+						</td>
+						<td>{$item['pname']}</td>
+					</tr>
+					{/query}
+				</tbody>
+			</table>
+		</div>
+	</div>
+	<div id="tab-5" name="table" style="display:none">
+		<div class="content">
+			<table width="98%" class="border_table">
+				<col width="250px" />
+				<col />
+				<thead>
+					<tr role="head" class="">
+						<th>方案</th>
+						<th>优惠内容</th>
+					</tr>
+				</thead>
+				<tbody>
+				{foreach:items=$this->result}
+				<tr id="a{$item['ogid']}">
+					<td>{$item['plan']}</td>
+					<td>{$item['info']}</td>
+				</tr>
+				{/foreach}
+				</tbody>
+			</table>
+		</div>
+	</div>
+	<div id="tab-6" name="table" style="display:none">
+		<div class="content_box">
+			<div class="content form_content">
+			<form name="ModelForm" action="{url:/order/order_note}" method="post">
+				<table class="form_table">
+					<col width="150px" />
+					<col />
+					<tbody>
+						<tr>
+							<th>订单备注:</th>
+							<td align="left"><input type="hidden" name="order_id" value="{$order_id}"/><input type="hidden" name="tab" value="6"/>
+							<textarea name="note" id="note" rows="8" cols="100">{$note}</textarea>
+							</td>
+						</tr>
+						<tr><td></td><td align="left"><button type="submit" class="submit" onclick="return checkForm();"><span>保存</span></button></td></tr>
+					</tbody>
+				</table>
+			</form>
+			</div>
+		</div>
+	</div>
+	<div id="tab-7" name="table" style="display:none">
+		<div class="content">
+			<table width="98%" class="border_table">
+				<colgroup>
+				<col width="200px">
+				<col width="150px">
+				<col width="150px">
+				<col width="100px">
+				<col />
+				</colgroup>
+				<thead>
+					<tr role="head" class="">
+						<th style="text-align:center">时间</th>
+						<th style="text-align:center">操作人</th>
+						<th style="text-align:center">动作</th>
+						<th style="text-align:center">结果</th>
+						<th style="text-align:center">备注</th>
+					</tr>
+				</thead>
+				<tbody>
+					{query: name=order_log as ol where=ol.order_id eq $order_id}
+					<tr id="a{$item['ogid']}">
+						<td style="text-align:center">{$item['addtime']}</td>
+						<td style="text-align:center">{$item['user']}</td>
+						<td style="text-align:center">{$item['action']}</td>
+						<td style="text-align:center">{$item['result']}</td>
+						<td style="text-align:center">{$item['note']}</td>
+					</tr>
+					{/query}
+				</tbody>
+			</table>
+		</div>
+	</div>
+	<div id="tab-8" name="table" style="display:none">
+		<div class="content_box">
+			<div class="content form_content">
+				<table class="form_table">
+					<col width="150px" />
+					<col />
+					<tbody>
+						<tr>
+							<th>订单附言:</th>
+							<td align="left">{$postscript}
+							</td>
+						</tr>
+					</tbody>
+				</table>
+			</div>
+		</div>
+
+	</div>
+	<div class="pages_bar">
+		<div class="t_c">
+		{if:$status<3}
+			{if:$pay_status==0}
+				<button type="button" class="btn" id="to_pay" onclick="pay({$order_id})"><span>支付</span></button>
+			{else:}
+				<button type="button" class="btn inactive" disabled="disabled"><span>支付</span></button>
+			{/if}
+			{if:$distribution_status!=1}
+				<button type="button" class="btn" onclick="deliver({$order_id});" id="to_deliver"><span>发货</span></button>
+			{else:}
+				<button type="button" class="btn inactive" disabled="disabled" id="to_deliver"><span>发货</span></button>
+			{/if}
+				<button type="button" class="btn" onclick="complete({$order_id},5)"><span>完成</span></button>&nbsp;&nbsp;&nbsp;&nbsp;
+			{if:$pay_status==1}
+				<button type="button" class="btn" onclick="refundment({$order_id})" id="to_refundment"><span>退款</span></button>
+			{else:}
+				<button type="button" class="btn inactive" disabled="disabled" id="to_refundment"><span>退款</span></button>
+			{/if}
+			{if:$distribution_status==1}
+				<button type="button" class="btn" onclick="return_doc({$order_id})" id="to_return"><span>退货</span></button>&nbsp;&nbsp;&nbsp;&nbsp;
+			{else:}
+				<button type="button" class="btn inactive" disabled="disabled" id="to_return"><span>退货</span></button>&nbsp;&nbsp;&nbsp;&nbsp;
+			{/if}
+				<button type="button" class="btn" onclick="complete({$order_id},4)"><span>作废</span></button>
+		{else:}
+		<button type="submit" class="btn inactive" disabled="disabled"><span>支付</span></button>
+		<button type="submit" class="btn inactive" disabled="disabled" id="to_deliver"><span>发货</span></button>
+		<button type="submit" class="btn inactive" disabled="disabled"><span>完成</span></button>&nbsp;&nbsp;&nbsp;&nbsp;
+		{if:$status==5}
+			{if:$pay_status==1}
+				<button type="button" class="btn" onclick="refundment({$order_id})" id="to_refundment"><span>退款</span></button>
+			{else:}
+				<button type="button" class="btn inactive" disabled="disabled" id="to_refundment"><span>退款</span></button>
+			{/if}
+		{else:}
+			<button type="submit" class="btn inactive" disabled="disabled" id="to_refundment"><span>退款</span></button>
+		{/if}
+		<button type="submit" class="btn inactive" disabled="disabled" id="to_return"><span>退货</span></button>&nbsp;&nbsp;&nbsp;&nbsp;
+		<button type="submit" class="btn inactive" disabled="disabled"><span>作废</span></button>
+		{/if}
+		</div>
+	</div>
+
+<script type='text/javascript'>
+var pay_status = '{$pay_status}';
+var tab = '{$tab}';
+if(tab=='')
+{
+	tab = '1';
+}
+
+selectTab(tab);
+
+function checkForm()
+{
+	if (document.ModelForm.note.value   ==   '')
+	{
+		alert('请输入订单备注!');
+		return false;
+	}
+}
+function checkForm1()
+{
+	if (document.orderForm.title.value   ==   '')
+	{
+		alert('请输入标题!');
+		return false;
+	}
+	if (document.orderForm.content.value   ==   '')
+	{
+		alert('请输入留言内容!');
+		return false;
+	}
+}
+//选择当前Tab
+function selectTab(curr_tab)
+{
+	$("div[name='table']").hide();
+	$("#tab-"+curr_tab).show();
+	$("ul[name=menu1] > li").removeClass('selected');
+	$('#li_'+curr_tab).addClass('selected');
+	//获得当前的tab
+	tab = curr_tab;
+	if(curr_tab=="3" || curr_tab=="4" || curr_tab=="5" || curr_tab=="6" || curr_tab=="7" || curr_tab=="8" )
+	{
+		$("#field").hide();
+	}
+	else
+	{
+		$("#field").show();
+	}
+}
+function complete(id,va)
+{
+	if(pay_status=='0' && va == '5')
+	{
+		alert('请先支付订单金额，再完成订单!');
+		return false;
+	}
+	$.get("{url:/order/order_complete}",{order_no:"{$order_no}",type:va,id:id}, function(data)
+	{
+		if(data=='1')
+			alert('您的操作已经成功!');
+			window.location.reload();
+	});
+}
+function refundment(id)
+{
+	var tempUrl = '{url:/order/order_refundment/id/@id@}';
+	tempUrl     = tempUrl.replace('@id@',id);
+	art.dialog.open(tempUrl,{
+		id:'refundment',
+		width:'580px',
+		height:'215px',
+		noText:'关闭',
+		yesText:'退款',
+	    title: '订单号:{$order_no}【退款】',
+	    yesFn: function(iframeWin, topWin){
+		   var form = iframeWin.document.getElementById('col');
+		   if(form!=undefined)
+		   {
+			   var amount = iframeWin.$("#amount").val();
+			     if($.trim(amount)=='')
+			     {
+			     	alert('请输入退款金额!');
+				        return false;
+				 }
+			   form.submit();
+			   $('#to_refundment').attr('disabled','disabled');
+			   $('#to_refundment').addClass('inactive');
+		   }
+		  this.size(200,60);
+		  this.time('3');
+		  return false;
+	    },
+	    noFn:function (){
+	    	return true;
+		}
+	});
+}
+function pay(id)
+{
+	var tempUrl = '{url:/order/order_collection/id/@id@}';
+	tempUrl     = tempUrl.replace('@id@',id);
+
+	art.dialog.open(tempUrl,{
+		id:'pay',
+		width:'600px',
+		height:'270px',
+	    title: '订单号:{$order_no}【付款】',
+	    noText:'关闭',
+		yesText:'付款',
+	    yesFn: function(iframeWin, topWin){
+		   var form = iframeWin.document.getElementById('pay_form');
+		   if(form!=undefined)
+		   {
+			   	var amount = iframeWin.$("#amount").val();
+		     	if($.trim(amount)=='')
+			    {
+			     	alert('请输入付款金额!');
+				    return false;
+				}
+			   form.submit();
+			   $('#to_pay').attr('disabled','disabled');
+			   $('#to_pay').addClass('inactive');
+			   pay_status = '1';
+			   //将退款设为可用
+			   $('#to_refundment').removeAttr('disabled');
+			   $('#to_refundment').removeClass('inactive');
+			   $('#to_refundment').click(function(){refundment(id)});
+		   }
+		   this.size(200,60);
+		   this.time('3');
+		   return false;
+	    },
+	    noFn:function (){
+	    	return true;
+		}
+	});
+}
+function deliver(id)
+{
+	var tempUrl = '{url:/order/order_deliver/id/@id@}';
+	tempUrl     = tempUrl.replace('@id@',id);
+
+	var deliv = art.dialog.open(tempUrl,{
+		id:'deliver',
+		width:'750px',
+		height:'450px',
+	    title: '订单号:{$order_no}【发货】',
+	    noText:'关闭',
+		yesText:'发货',
+	    yesFn: function(iframeWin, topWin){
+		   var form = iframeWin.document.getElementById('deliver_form');
+		   if(form!=undefined)
+		   {
+			   var freight = iframeWin.$("#freight").val(),
+				 name = iframeWin.$("#name").val(),
+				 mobile = iframeWin.$("#mobile").val(),
+				 province = iframeWin.$("#province").val(),
+			     city = iframeWin.$("#city").val(),
+			     area = iframeWin.$("#area").val();
+				if($.trim(freight)=='')
+			    {
+			        alert('请输入配送费用!');
+			        return false;
+			    }
+			    if($.trim(name)=='')
+			    {
+			    	alert('请输入收货人姓名!');
+			        return false;
+			    }
+			    if($.trim(mobile)=='')
+			    {
+			    	alert("请输入手机号码!");
+			        return false;
+			    }
+			    if($.trim(province)=='' || $.trim(city)=='' || $.trim(area)=='')
+			    {
+			    	alert("请选择地区!");
+			        return false;
+			    }
+			   form.submit();
+			   $('#to_deliver').attr('disabled','disabled');
+			   $('#to_deliver').addClass('inactive');
+			   //将退款设为可用
+			   $('#to_return').removeAttr('disabled');
+			   $('#to_return').removeClass('inactive');
+			   $('#to_return').click(function(){return_doc(id)});
+		   }
+		   this.size(200,60);
+		   this.time('3');
+		   return false;
+	    },
+	    noFn:function (){
+	    	return true;
+		}
+	});
+}
+function return_doc(id)
+{
+	var tempUrl = '{url:/order/order_return/id/@id@}';
+	tempUrl     = tempUrl.replace('@id@',id);
+
+	art.dialog.open(tempUrl,{
+		id:'return_doc',
+		width:'730px',
+		height:'540px',
+	    title: '订单号:{$order_no}【退货】',
+	    noText:'关闭',
+		yesText:'退货',
+	    yesFn: function(iframeWin, topWin){
+		   var form = iframeWin.document.getElementById('return_form');
+		   if(form!=undefined)
+		   {
+			   var freight = iframeWin.$("#freight").val(),
+			    name = iframeWin.$("#name").val(),
+			    mobile = iframeWin.$("#mobile").val(),
+			    province = iframeWin.$("#province").val(),
+			    city = iframeWin.$("#city").val(),
+			    area = iframeWin.$("#area").val();
+			   if($.trim(freight)=='')
+			   {
+			       alert('请输入配送费用!');
+			       return false;
+			   }
+			   if($.trim(name)=='')
+			   {
+			   		alert('请输入收货人姓名!');
+			      	return false;
+			   }
+			   if($.trim(mobile)=='')
+			   {
+			   		alert("请输入手机号码!");
+			      	return false;
+			   }
+			   if($.trim(province)=='' || $.trim(city)=='' || $.trim(area)=='')
+			   {
+			   		alert("请选择地区!");
+			      	return false;
+			   }
+			   form.submit();
+			   $('#to_return').attr('disabled','disabled');
+			   $('#to_return').addClass('inactive');
+			   //将退款设为可用
+			   $('#to_deliver').removeAttr('disabled');
+			   $('#to_deliver').removeClass('inactive');
+			   $('#to_deliver').click(function(){deliver(id)});
+		   }
+		   this.size(200,60);
+		   this.time('3');
+		   return false;
+	    },
+	    noFn:function (){
+	    	return true;
+		}
+	});
+}
+</script>

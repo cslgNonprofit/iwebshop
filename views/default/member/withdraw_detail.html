@@ -1,0 +1,66 @@
+<div class="headbar">
+	<div class="position"><span>会员</span><span>></span><span>提现管理</span><span>></span><span>提现申请</span></div>
+</div>
+<div class="content_box">
+	<div style="text-align:left;border-radius:10px;background:#ccc;padding:10px;margin:10px;">修改状态前请确认您的财务人员已经将相应款项处理完毕</div>
+	<div class="content form_content">
+		
+		<form action='{url:/member/withdraw_status}' method='post' name='withdraw_detail'>
+			<table class="form_table">
+				<input type='hidden' name='id' value='{$this->withdrawRow['id']}' />
+				<col width="150px" />
+				<col />
+				<tr>
+					<th>收款人姓名：</th>
+					<td>{$this->withdrawRow['name']}</td>
+				</tr>
+				<tr>
+					<th>提现金额：</th>
+					<td>{$this->withdrawRow['amount']}</td>
+				</tr>
+				<tr>
+					<th>申请时间：</th>
+					<td>{$this->withdrawRow['time']}</td>
+				</tr>
+				<tr>
+					<th>备注：</th>
+					<td>{$this->withdrawRow['note']}</td>
+				</tr>
+				<tr>
+					<th>状态：</th>
+					<td>{echo:Ucenter::getWithdrawStatus($this->withdrawRow['status'])}</td>
+				</tr>
+				
+				{if:$this->withdrawRow['status']==0}
+				<tr>
+					<th>修改状态：</th>
+					<td>
+						<label class='attr'><input type='radio' name='status' value='-1' />{echo:Ucenter::getWithdrawStatus(-1)}</label>
+						<label class='attr'><input type='radio' name='status' value='2' />{echo:Ucenter::getWithdrawStatus(2)}</label>
+						<p>状态只能修改一次</p>
+					</td>
+				</tr>
+				{/if}
+				<tr>
+					<th>回复用户：</th>
+					<td><textarea class='textarea' name='re_note'></textarea></td>
+				</tr>
+				<tr>
+					<th></th>
+					<td>
+						<button class="submit" type="submit"><span>修 改</span></button>
+						<button class="submit" type="button" onclick="window.location.href='{url:/member/withdraw_list}';"><span>返回列表</span></button>
+					</td>
+				</tr>
+			</table>
+		</form>
+	</div>
+</div>
+
+<script type='text/javascript'>
+	var formObj = new Form('withdraw_detail');
+	formObj.init({
+		'status':'{$this->withdrawRow['status']}',
+		're_note':'{$this->withdrawRow['re_note']}'
+	});
+</script>

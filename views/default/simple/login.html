@@ -1,0 +1,129 @@
+{set:$seo_data=array(); $site_config=new Config('site_config');$site_config=$site_config->getInfo();}
+{set:$seo_data['title']=isset($site_config['name'])?$site_config['name']:""}
+{set:$seo_data['title']="用户登录_".$seo_data['title']}
+{set:seo::set($seo_data);}
+
+	<div class="wrapper clearfix">
+		<div class="wrap_box">
+			<h3 class="notice">已注册用户，请登录</h3>
+			<p class="tips">欢迎来到我们的网站，如果您已是本站会员请登录</p>
+			<div class="box login_box clearfix">
+				<form action='{url:/simple/login_act}' method='post'>
+					{set:$callback = IReq::get('callback')}
+					{if:$callback!==null && $callback!=''}
+					<input type="hidden" name='callback' value="{$callback}">
+					{else:}
+					<input type="hidden" name='callback' value="{echo:IUrl::getRefRoute()}">
+					{/if}
+					<table width="515" class="form_table f_l">
+						<col width="120px" />
+						<col />
+
+						{if:$this->message!=''}
+						<tr><td colspan="2">
+							<div class="prompt"><img src="{skin:images/front/error_s.gif}" width="16" height="15" />{$this->message}</div>
+						</td></tr>
+						{/if}
+
+						<tr><th>用户名/邮箱：</th><td><input class="gray" type="text" name="login_info" value="{echo:ICookie::get('loginName');}" pattern='required' alt='填写用户名或邮箱' /></td></tr>
+						<tr><th>密码：</th><td><input class="gray" type="password" name="password" pattern='^\S{6,32}$' alt='填写密码' /></td></tr>
+						<tr class="low"><td></td>
+							<td>
+								<label class="attr"><input class="radio" type="checkbox" name="remember" value='1' />记住登录名</label>
+								<label class="attr"><a class="link pwd" href="{url:/simple/find_password/}">忘记密码</a></label>
+							</td>
+						</tr>
+						<tr class="low">
+							<td></td>
+							<td>
+								{query:name=oauth where = is_close eq 0}
+								<a href="javascript:oauthlogin('{$item['id']}');"><img src='{webroot:$item[logo]}' /></a>
+								{/query}
+							</td>
+						</tr>
+						<tr><td></td><td><input class="submit_login" type="submit" value="登录" /></td></tr>
+					</table>
+				</form>
+
+				{if:IReq::get('tourist') === null}
+				<table width="360px" class="form_table prompt_3 f_l">
+					<col width="75px" />
+					<col />
+					<tr>
+						<th></th>
+						<td>
+							<p class="mt_10"><strong class="f14">您还不是<span class="orange">{echo:$siteConfig->name}</span>用户</strong></p>
+							<p>现在免费注册成为{echo:$siteConfig->name}商城用户，便能立即享受便宜又放心的购物乐趣。<a class="blue" href="{url:}">网站首页>></a></p>
+							{if:$callback==""}
+							<p class="mt_10"><a class="reg_btn" href="{url:/simple/reg}">注册新用户</a></p>
+							{else:}
+							{set:$tmpUrl = urlencode($callback);}
+							<p class="mt_10"><a class="reg_btn" href="{url:/simple/reg/?callback=$tmpUrl}">注册新用户</a></p>
+							{/if}
+						</td>
+					</tr>
+				</table>
+
+				{else:}
+
+				<table id="reg_table" width="360px" class="form_table prompt_3 f_l">
+					<col width="75px" />
+					<col />
+					<tr>
+						<th></th>
+						<td>
+							<p class="mt_10 m_15">
+								<strong class="f14">您还不是<span class="orange">{echo:$siteConfig->name}</span>用户</strong><br />
+								<label>使用游客身份结账或注册</label>
+							</p>
+							<p><label class="attr"><input class="radio" type='radio' name='next_step' value='acount' />使用游客身份结账</label></p>
+							<p><label class="attr"><input class="radio" type='radio' name='next_step' value='reg' checked=checked />注册新用户</label></p>
+							<p class="mt_10 indentation">现在免费注册成为{echo:$siteConfig->name}商城用户，便能立即享受便宜又放心的购物乐趣。<a class="blue" href="{url:}">网站首页>></a></p>
+							<p class="mt_40 f_r"><a class="next_step" href="javascript:next_step();">下一步</a></p>
+						</td>
+					</tr>
+				</table>
+				{/if}
+
+			</div>
+		</div>
+	</div>
+
+	<script type='text/javascript'>
+		//多平台登录
+		function oauthlogin(oauth_id)
+		{
+			$.getJSON('{url:/simple/oauth_login}',{id:oauth_id,callback:"{$callback}"},function(content){
+				if(content.isError == false)
+				{
+					window.location.href = content.url;
+				}
+				else
+				{
+					alert(content.message);
+				}
+			});
+		}
+
+		//下一步操作
+		function next_step()
+		{
+			var step_val = $('[name="next_step"]:checked').val();
+			if(step_val == 'acount')
+			{
+				window.location.href = '{if:$callback!=""}{set:$url=rtrim($callback,"/")."/tourist"}{url:$url}{/if}';
+			}
+			else if(step_val == 'reg')
+			{
+				window.location.href = '{if:$callback==""}{url:/simple/reg}{else:}{url:/simple/reg/?callback=$callback}{/if}';
+			}
+		}
+
+		jQuery
+		(
+			function($)
+			{
+				$(".form_table input").focus(function(){$(this).addClass('current');}).blur(function(){$(this).removeClass('current');})
+			}
+		)
+	</script>

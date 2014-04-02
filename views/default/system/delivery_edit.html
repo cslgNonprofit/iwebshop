@@ -1,0 +1,233 @@
+{set:$data=$this->data_info[0]}
+<div class="headbar">
+	<div class="position"><span>系统</span><span>></span><span>配送管理</span><span>></span><span>{if:isset($data['id'])}编辑{else:}添加{/if}配送方式</span></div>
+</div>
+<div class="content_box">
+	<div class="content form_content">
+		<form action='{url:/system/delivery_update}' method='post' name='form'>
+			<table class="form_table">
+				<col width="150px" />
+				<col />
+				<input type="hidden" name="id" value="" />
+				<tr>
+					<th>配送方式名称:</th>
+					<td>
+						<input class="normal" name="name" value="" type="text" pattern="required" alt="配送方式名称不能为空" /><label>*配送方式</label>
+					</td>
+				</tr>
+				<tr>
+					<th>货运公司:</th>
+					<td>
+						<select name="freight_id">
+						{query:name=freight_company where=is_del eq 0}
+							<option value="{$item['id']}">{$item['freight_name']}</option>
+						{/query}
+						</select>
+					</td>
+				</tr>
+				<tr>
+					<th>类型:</th><td><label class='attr'><input type="radio" value='0' name="type" checked ='checked'> 先收款后发货</label><label class='attr'><input type="radio" value='1' name="type" > 货到付款</label> <label>货到付款选择货到付款后顾客无需再选择支付方式</label></td>
+				</tr>
+				<tr>
+					<th>重量设置:</th>
+					<td>首重重量 &nbsp;
+						<select name="first_weight" id="first_weight">
+							<option label="500克" value="500">500克</option>
+							<option label="1公斤" value="1000" selected="selected">1公斤</option>
+							<option label="1.2公斤" value="1200">1.2公斤</option>
+							<option label="2公斤" value="2000">2公斤</option>
+							<option label="5公斤" value="5000">5公斤</option>
+							<option label="10公斤" value="10000">10公斤</option>
+							<option label="20公斤" value="20000">20公斤</option>
+							<option label="50公斤" value="50000">50公斤</option>
+						</select>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 续重单位 &nbsp;
+
+						<select name="second_weight" id="second_weight">
+							<option label="500克" value="500">500克</option>
+							<option label="1公斤" value="1000" selected="selected">1公斤</option>
+							<option label="1.2公斤" value="1200">1.2公斤</option>
+							<option label="2公斤" value="2000">2公斤</option>
+							<option label="5公斤" value="5000">5公斤</option>
+							<option label="10公斤" value="10000">10公斤</option>
+							<option label="20公斤" value="20000">20公斤</option>
+							<option label="50公斤" value="50000">50公斤</option>
+						</select>
+					</td>
+				</tr>
+				<tr>
+					<th></th><td><label class='attr'><input name="is_save_price" value="1" id='is_save_price' type="checkbox" onclick='protect_price(this)'>支持物流保价</label></td>
+				</tr>
+				<tr id='protect' style='display:none'>
+					<th>保价设置:</th><td> 费率&nbsp;<input name="save_rate" id='save_rate' value="{$data['save_rate']}" style="width: 25px;" pattern="int" alt="该项必填且只允许填写数字金额" type="text">%<label></label>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;最低保价费&nbsp;<input name="low_price" id="low_price" value="{$data['low_price']}" style="width: 25px;" pattern="float" alt="该项必填且只允许填写数字金额" type="text"><label>*该项必填且只允许填写数字金额</label></td>
+				</tr>
+				<tr>
+					<th>地区费用类型:</th><td><label class='attr'><input name="price_type" value="0" checked="checked" type="radio" onclick='set_area(0)'>统一设置</label>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<label class='attr'><input name="price_type" value="1" type="radio" id='price_type_1' onclick='set_area(1)'>指定配送地区和费用</label> </td>
+				</tr>
+				</table>
+				<table class="form_table" id='set_delivery'>
+					<col width="150px" />
+					<col />
+					<tr id='open_default' style='display:none'>
+						<th></th><td><input name="open_default" id='open_default_id' value="1" type='checkbox' onclick='default_firce(this)' >启用默认费用<span> 注意：未启用默认费用时，不在指定配送地区的顾客不能使用本配送方式下订单</span></td>
+					</tr>
+					<tr id='delivery' >
+						<th>配送费用:</th><td> 首重费用 <input class='tiny' style="width: 30px;" name="first_price" value="{$data['first_price']}"  pattern="float" alt="该项必填且只允许填写数字金额" type="text">元 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 续重费用 <input class='tiny' name="second_price" value="{$data['second_price']}" pattern="float" alt="该项必填且只允许填写数字金额" type="text">元 </td>
+					</tr>
+					<tr id='super_area' style='display:none'>
+						<th>支持的配送地区:</th><td>
+	                    <div id='area_list'>
+	                    {set:$area = unserialize($data['area']);$firstprice = unserialize($data['firstprice']);$secondprice = unserialize($data['secondprice']);$area_groupid = unserialize($data['area_groupid']);}
+						{if:is_array($area)}
+	                    {foreach:items=$area }
+						 <div  class='content_box' style='padding:6px'><a href="javascript:void(0)" onclick='del_area(this)' class='f_r'><img alt="删除" src="{skin:images/admin/icon_del.gif}" class="operator"/></a>配送地区 <input name='area[]' value="{$item}" onclick='area_menu(this)' pattern="required" alt='地区不能为空' readonly='true'>
+						 <input name='area_groupid[]' value='{$area_groupid[$key]}' type='hidden'>
+						首重费用 <input class='tiny' style="width: 30px;" name="firstprice[]" value="{$firstprice[$key]}"  pattern="float" alt="该项必填且只允许填写数字金额" type="text">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 续重费用 <input class='tiny' style="width: 30px;" name="secondprice[]" value="{$secondprice[$key]}" pattern="float" alt="该项必填且只允许填写数字金额" type="text">
+						</div>
+						{/foreach}
+						{else:}
+						<div  class='content_box' pattern="required" alt='地区不能为空' style='padding:6px'>配送地区 <input name='area[]' value="" onclick='area_menu(this)' readonly='true'>
+						 <input name='area_groupid[]' value='' type='hidden'>
+						首重费用 <input class='tiny' style="width: 30px;" name="firstprice[]" value=""  pattern="float" alt="该项必填且只允许填写数字金额" type="text">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 续重费用 <input class='tiny' name="secondprice[]" value=""  style="width: 30px;" pattern="float" alt="该项必填且只允许填写数字金额" type="text">
+	                    <a href="javascript:void(0)" onclick='del_area(this)' class='f_r'><img alt="删除" src="{skin:images/admin/icon_del.gif}" class="operator"/></a>
+						</div>
+						{/if}
+	                    </div>
+						<button type="button" class="btn" id="areaadd" onclick='add_area()'><span class="add">为指定的地区设置运费</span></button>
+						</td>
+					</tr>
+				</table>
+
+				<table class="form_table">
+					<col width="150px" />
+					<col />
+					<tr>
+						<th>排序:</th><td> <input class='tiny' name="sort" value="" size="5" pattern="^\d{1,2}$" alt="请输入排序项，1-2位正整数" type="text"></td>
+					</tr>
+					<tr>
+						<th>状态:</th><td><label class='attr'><input name="status" checked="checked" value="1" type="radio">启用</label><label class='attr'><input name="status" value="0" type="radio">关闭</label></td>
+					</tr>
+					<tr>
+						<th>详细介绍:</th><td><textarea name="description" rows="5" cols="">{$data['description']}</textarea></td>
+					</tr>
+					<tr>
+						<th></th><td><button type="submit" class="submit"><span>保 存</span></button></td>
+					</tr>
+				</table>
+		</form>
+		<div id='area_template' style='display:none'>
+	        <div  class='content_box' style='padding:6px'><a href="javascript:void(0)" onclick='del_area(this)' class='f_r'><img alt="删除" src="{skin:images/admin/icon_del.gif}" class="operator"/></a>配送地区 <input name='area[]' onclick='area_menu(this)' pattern="required" alt='地区不能为空' readonly='true'>
+			<input name='area_groupid[]' value='' type='hidden'>
+			首重费用 <input class='tiny' style="width: 30px;" name="firstprice[]" value=""  pattern="float" alt="该项必填且只允许填写数字金额" type="text">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 续重费用 <input class='tiny' style="width: 30px;" name="secondprice[]" value="" pattern="float" alt="该项必填且只允许填写数字金额" type="text">
+	        
+			</div>
+        </div>
+	</div>
+</div>
+<script type='text/javascript'>
+$('#protect,#protect input').css('display','none');
+$('#super_area,#super_area input').css('display','none');
+function protect_price(obj)
+{
+	if(obj.checked)
+	{
+		$('#protect,#protect input').css('display','');
+	}
+	else
+	{
+		$('#protect,#protect input').css('display','none');
+	}
+}
+function default_firce(obj)
+{
+	if(obj.checked)
+	{
+		$('#delivery,#delivery input').css('display','');
+	}
+	else
+	{
+		$('#delivery,#delivery input').css('display','none');
+	}
+}
+function set_area(num)
+{
+	if(num==0)
+	{
+		 $('#open_default').css('display','none');
+		 $('#delivery,#delivery input').css('display','');
+		 $('#super_area,#super_area input').css('display','none');
+		 $('#delivery th').html('配送费用:');
+	}
+	else if(num==1)
+	{
+		$('#open_default').css('display','');
+		$('#super_area').css('display','');
+		$('#super_area,#super_area input').css('display','');
+		$('#delivery th').html('');
+		if(document.getElementById('open_default_id').checked)
+		{
+			 $('#delivery,#delivery input').css('display','');
+		}
+		else
+		{
+			$('#delivery,#delivery input').css('display','none');
+		}
+	}
+}
+//删改添加的地区
+function del_area(obj)
+{
+    $(obj).parent().remove();
+}
+function add_area()
+{
+    $('#area_list').append($("#area_template div").clone());
+}
+function area_menu(obj)
+{
+	var tem='';
+    art.dialog.load('{url:/block/area}',{id:'select_area',title:'选择配送地区',yesFn:function(){
+	$('#select_area input[leval=1]:checked').each(function(){tem+=$(this).parent().text()+';';});
+	obj.value=tem.substring(0,tem.length-1);
+	var value='';
+	$('#select_area input:checked').each(function (){
+		value += $(this).val()+';';
+	});
+	$(obj).next('input[type=hidden]').val(value);
+	},noFn:function(){},initFn:function(){
+		var values = ';'+$(obj).next('input[type=hidden]').val();
+		$('#select_area input').each(function(){
+			if(values.indexOf(';'+$(this).val()+';')!=-1)
+			{
+				$(this).attr('checked',true);
+			}
+		});
+		$('#area_list').data('obj',obj);
+	}},true);
+}
+//修改的时候设置默认
+{if:$data['is_save_price']==1}
+$('#is_save_price').attr('checked',true).click();
+$('#is_save_price').attr('checked',true);
+{/if}
+{if:$data['open_default']==1}
+$('#open_default_id').attr('checked',true).click();
+$('#open_default_id').attr('checked',true);
+{/if}
+{if:$data['price_type']==1}
+$('#price_type_1').click();
+{/if}
+//修改改时初始化部分表单
+{if:is_array($data)}
+var form = new Form('form');
+form.init({
+	name:"{$data['name']}",
+	id:"{$data['id']}",
+	first_weight:"{$data['first_weight']}",
+	second_weight:"{$data['second_weight']}",
+	sort:"{$data['sort']}",
+	status:"{$data['status']}",
+	type:"{$data['type']}",
+	freight_id:"{$data['freight_id']}"
+});
+{/if}
+</script>

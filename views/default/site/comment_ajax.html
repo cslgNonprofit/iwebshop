@@ -1,0 +1,144 @@
+{set:$id = intval(IReq::get('id'));$type = IReq::get('type')}
+{set:$page= (isset($_GET['page'])&&(intval($_GET['page'])>0))?intval($_GET['page']):1;}
+{if:$type=='comment'}
+	{query:name=comment as c join=left join goods as lg on c.goods_id eq lg.id left join user as u on u.id eq c.user_id fields=c.time,u.head_ico,c.comment_time,c.contents,c.point,lg.id as gid,c.user_id  where=c.goods_id eq $id and c.status eq 1 AND lg.id is not null order=c.comment_time desc id=$quer_com page=1}
+		<div class="item">
+			<div class="user">
+				<div class="ico">
+				<img src="{webroot:$va[head_ico]}" width="70" height="70" onerror="this.src='{skin:images/front/user_ico.gif}'" />
+				</div>
+				{query:name=user as u join=left join member as m on m.user_id eq u.id fields=u.username,m.group_id where=u.id eq $item[user_id] item=$va}
+					{if:$va['username']}<a class="blue" href="javascript:;">{$va['username']}</a>{/if}
+					{query:name=user_group fields=group_name where=id eq $va[group_id] item=$it}
+						{if:$it['group_name']}<p class="gray">({$it['group_name']})</p>{/if}
+					{/query}
+				{/query}
+			</div>
+			<dl class="desc">{set:$wid = 14*$item['point']}
+				<p class="clearfix"><b>评分：</b><span class="grade"><i style="width:{echo:$wid}px"></i></span><span class="light_gray">{$item['time']}</span><label></label></p>
+				<hr />
+				<p><b>评价：</b><span class="gray">{$item['contents']}</span></p>
+			</dl>
+			<div class="corner b"></div>
+		</div>
+		<hr />
+		{/query}
+	{$quer_com->getPageBar("javascript:void(0);",'onclick="comment_ajax([page])"')}
+{/if}
+{if:$type=='shop'}
+<table width="100%" class="list_table m_10 mt_10">
+		<col width="90" />
+		<col />
+		<col width="80" />
+		<col width="90" />
+		<col width="80" />
+		<col width="150" />
+		<col width="60" />
+		<thead class="thead">
+			<tr><th>购买人</th><th>宝贝名称</th><th>会员级别</th><th>出价</th><th>数量</th><th>购买时间</th><th>状态</th></tr>
+		</thead>
+	</table>
+	<table width="100%" class="list_table m_10">
+		<col width="90" />
+		<col />
+		<col width="80" />
+		<col width="90" />
+		<col width="80" />
+		<col width="150" />
+		<col width="60" />
+		<tbody class="dashed">
+			{query:name=order_goods as og join=left join order as o on og.order_id eq o.id fields=o.user_id,og.product_id,og.goods_price,og.goods_nums,o.completion_time where=og.goods_id eq $id and o.status eq 5 and (to_days(now())-to_days(o.completion_time)) l 31 order=o.completion_time desc id=$quer page=$page}
+				<tr>
+					<td>
+					{query:name=user fields=username where=id eq $item[user_id] item=$va}
+						{$va['username']}
+					{/query}
+					</td>
+				<td class="t_l">
+				{query:name=goods fields=name,id as gid where=id eq $id item=$va}
+				{$va['name']}
+				{/query}
+				<p>
+				{if:$item['product_id']!=0}
+				{query:name=products fields=spec_array where=id eq $item[product_id] item=$va}
+					{set:$arr = unserialize($va['spec_array'])}
+					{foreach:items=$arr item=$valu}
+					{query:name=spec fields=name as spec_name,type where=id eq $valu[id] item=$spec}
+						{$spec['spec_name']}:{if:$spec['type']==1}{$valu['value']}{else:}<img src="{$valu['value']}" width="30px" height="30px"/>{/if}
+					{/query}
+					{/foreach}
+				{/query}
+				{/if}
+				</p>
+				</td>
+				<td>
+				{query:name=user_group as ug join=left join member as m on m.group_id eq ug.id fields=group_name where=m.user_id eq $item[user_id] item=$va}
+				{$va['group_name']}
+				{/query}
+				</td>
+				<td>{$item['goods_price']}</td>
+				<td class="bold orange">{$item['goods_nums']}</td>
+				<td class="light_gray">{$item['completion_time']}</td>
+				<td class="bold blue">成交</td></tr>
+			{/query}
+		</tbody>
+	</table>
+	{$quer->getPageBar("javascript:void(0);",'onclick="shop_ajax([page])"')}
+{/if}
+{if:$type=='refer'}
+{query:name=refer as r join=left join user as u on r.user_id eq u.id  fields=u.username,u.head_ico,r.user_id,r.time as rtime,r.question,r.reply_time,r.answer where=r.goods_id eq $id order=r.time desc id=$ref page=$page}
+		<div class="item">
+			<div class="user">
+				<div class="ico"><img src="{webroot:$item[head_ico]}" width="70" height="70" onerror="this.src='{skin:images/front/user_ico.gif}'" /></div>
+				<a class="blue" href="javascript:;">{$item['username']}</a>
+				{query:name=user_group as ug join=left join member as m on m.group_id eq ug.id fields=group_name where=m.user_id eq $item[user_id] item=$va}
+					{if:$va['group_name']}<p class="gray">({$va['group_name']})</p>{/if}
+				{/query}
+				<p class="gray">{$item['rtime']}</p>
+			</div>
+			<dl class="desc gray">
+				<p><img src="{skin:images/front/ask.gif}" width="16" height="17" alt="" /><b>咨询内容：</b><span class="f_r">{$item['rtime']}</span></p>
+				<p class="indent">{$item['question']}</p>
+				<hr />
+				{if:$item['answer']}
+				<p class="bg_gray"><img src="{skin:images/front/answer.gif}" width="16" height="17" alt="" /><b class="orange">{echo:$siteConfig->name}回复：</b><span class="f_r">{$item['reply_time']}</span></p>
+				<p class="indent bg_gray">{$item['answer']}</p>
+				{/if}
+			</dl>
+			<div class="corner b"></div>
+			<div class="corner tl"></div>
+		</div>
+		<hr />
+{/query}
+	{$ref->getPageBar("javascript:void(0);",'onclick="refer_ajax([page])"')}
+{/if}
+{if:$type=='discussion'}
+	<table width="100%" class="list_table">
+		<col>
+		<col width="150">
+		<tbody id="discussion_tr">
+		{query:name=discussion as d join=left join user as u on d.user_id eq u.id fields=u.username,d.user_id,d.time as rtime,d.contents where=d.goods_id eq $id order=d.time desc id=$disp page=1}
+			<tr><td class="t_l discussion_td" style="border:none;">
+			{query:name=user_group as ug join=left join member as m on m.group_id eq ug.id fields=group_name where=m.user_id eq $item[user_id] item=$va}
+				{if:$va['group_name']}{$va['group_name']}:{/if}
+			{/query}
+			<span class="blue">{$item['username']}</span></td>
+			<td style="border:none;" class="t_r gray discussion_td">{$item['rtime']}</td></tr>
+			<tr><td class="t_l" colspan="2"  style="padding:0 7px 0 13px;">{$item['contents']}</td></tr>
+		{/query}
+		</tbody>
+	</table>
+	{$disp->getPageBar("javascript:void(0);",'onclick="discussion_ajax([page])"')}
+	<table width="100%" class="form_table" id="isset_publi" style="display:none;">
+		<colgroup>
+			<col width="80px">
+				<col>
+			</colgroup>
+		<tbody>
+			<tr><td>讨论内容：</td><td valign="top"><textarea rows="3" id="receive" cols="20"></textarea></td></tr>
+			<tr><th>验证码：</th><td><input type='text' class='gray_s' name='captcha' pattern='^\w{5,10}$' alt='填写下面图片所示的字符' /><label>填写下面图片所示的字符</label></td></tr>
+			<tr class="low"><th></th><td><img src='{url:/site/getCaptcha}' id='captchaImg' /><span class="light_gray">看不清？<a class="link" href="javascript:changeCaptcha('{url:/site/getCaptcha}');">换一张</a></span></td></tr>
+			<tr><td></td><td><span class="f12 normal"><a class="comm_btn" href="javascript:;" onclick="return published();">发表</a></span></td></tr>
+		</tbody>
+	</table>
+{/if}

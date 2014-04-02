@@ -1,0 +1,122 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>管理后台</title>
+<link rel="stylesheet" href="{skin:css/admin.css}" />
+{js:jquery}
+{js:dialog}
+{js:form}
+{js:validate}
+<script type='text/javascript' src="{theme:javascript/admin.js}"></script>
+<script type='text/javascript' src="{theme:javascript/menu.js}"></script>
+</head>
+<body style="width:600px">
+<div class="pop_win" style="width:600px">
+<form action="" method="post" id="list">
+	<table class="spec" width="100%" cellspacing="0" cellpadding="0" border="0" id="list" >
+		<tr>
+			<td>
+				<h3>请选择商品 <button type="button" class="btn f_r" onclick="conversion();"><span class="sel">筛 选</span></button></h3>
+				<div id="specs">
+					<div class="cont" >
+						<ul>
+							{foreach:items=$this->arr}
+							<li>
+								<label><input type="checkbox" onclick="select(this.id);" autocomplete="off" name = "selec" value="{$item['goods_id']},{$item['id']},{$item['name']},{$item['sell_price']},{$item['weight']},{$item['point']},{$item['exp']}" />{$item['name']}&nbsp;&nbsp;
+								{if:$item['spec_array']!='0'}
+									{set:$arr = unserialize($item['spec_array']);}
+									{foreach:items=$arr item=$cc}
+										{query:name=spec fields=name,type where=id eq $cc[id] item=$va}
+											{echo:$va['name']}:{if:$va['type']==1}{$cc['value']}{else:}<img src="{webroot:$cc[value]}" width="15px" height="15px" class='spec_photo' />{/if}&nbsp;
+										{/query}
+									{/foreach}
+								{/if}
+								</label>
+							</li>
+							{/foreach}
+						</ul>
+					</div>
+				{$this->paging->getPageBar()}
+				</div>
+			</td>
+		</tr>
+	</table>
+</form>
+<form action="{url:/}" method="get" name="search_user">
+	<input type='hidden' name='controller' value='order' />
+	<input type='hidden' name='action' value='search_goods' />
+	<table class="spec" width="100%" cellspacing="0" cellpadding="0" border="0" id="selec" style="display:none">
+		<tr>
+				<td>
+					<h3>选择筛选商品条件:
+					</h3>
+					<div class="cont">
+					<table class="form_table">
+						<col width="106px" />
+						<col width="120px" />
+						<col width="120px" />
+						<col />
+						<tr>
+							<th>商品名称：</th>
+							<td>
+								<select class="middle" id="name_where" name="name_where">
+								<option value="like" {if:$name_where=='like'}selected{/if}>包含</option>
+								<option value="eq" {if:$name_where=='eq'}selected{/if}>等于</option>
+								</select>
+							</td>
+							<td>
+								<input class="small" type="text" id="goods_name" name="goods_name" value="{$goods_name}"/>
+							</td>
+						</tr>
+						<tr>
+							<th>货号：</th>
+							<td>
+								<select class="middle" id="code_where" name="code_where">
+								<option value="like" {if:$code_where=='like'}selected{/if}>包含</option>
+								<option value="eq" {if:$code_where=='eq'}selected{/if}>等于</option>
+								</select>
+							</td>
+							<td>
+								<input class="small" type="text" id="goods_code"name="goods_code" value="{$goods_code}"/>
+							</td>
+						</tr>
+
+						<tr>
+							<th>价格：</th>
+							<td>
+								<select class="middle" id="price_where" name="price_where">
+								<option value="like" {if:$price_where=='like'}selected{/if}>包含</option>
+								<option value="eq" {if:$price_where=='eq'}selected{/if}>等于</option>
+								</select>
+							</td>
+							<td>
+								<input class="small" type="text" id="price" name="price" value="{$price}"/>
+							</td>
+						</tr>
+					</table>
+					</div>
+				</td>
+			</tr>
+		<tr>
+			<td class="t_c">
+				<button type="button" class="submit" onclick="checkForm();"><span>筛选并返回列表</span></button>
+			</td>
+		</tr>
+	</table>
+</form>
+</div>
+<script type="text/javascript">
+function checkForm()
+{
+	document.search_user.submit();
+}
+function conversion()
+{
+	$("#list").toggle();
+	$("#selec").toggle();
+}
+</script>
+</body>
+</html>
+

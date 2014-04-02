@@ -1,0 +1,89 @@
+<div style='overflow-y:auto;width:230px;height:400px'>
+<ul class='grade'>
+{query: name=areas where= parent_id eq 0}
+<li><a herf='javascript:void(0)'  onclick="load_area(this,'{$item['area_id']}',0)" class='open'>&nbsp;&nbsp;&nbsp;&nbsp;</a><label><input type='checkbox' onclick='select_area(this,0)' id="area_{$item['area_id']}" value='{$item['area_id']}' leval='1' >{$item['area_name']}</label></li>
+{/query}
+</ul>
+</div>
+<script>
+function load_area(obj,parent_id,level)
+{
+    if($(obj).parent().find('ul').html()==null)
+    {
+        $.getJSON("{url:/block/area_child}",{aid:parent_id},function(data){
+        var tem='<ul>';
+        if(level<1)
+        {
+            for(i in data)
+            {
+                tem += '<li>'+"<a herf='javascript:void(0)' onclick=\"load_area(this,'"+data[i]['area_id']+"',"+(level+1)+")\" class='open'>&nbsp;&nbsp;&nbsp;&nbsp;</a><label><input type='checkbox' value='"+data[i]['area_id']+"'    onclick='select_area(this,"+parent_id+")' id='area_"+data[i]['area_id']+"' onchange='change_area(this,"+parent_id+")'>"+data[i]['area_name']+'</label></li>';
+            }
+        }
+        else
+        {
+            for(i in data)
+            {
+                tem += '<li>'+"<a>&nbsp;&nbsp;&nbsp;&nbsp;</a></a><label><input type='checkbox' value='"+data[i]['area_id']+"' onchange='change_area(this,"+parent_id+")'>"+data[i]['area_name']+'</label></li>';
+            }
+        }
+        tem += '</ul>';
+        $(obj).parent().append(tem);
+		//$(obj).parent().find('ul input').attr('checked',$(obj).parent().find('>label input').attr('checked'));
+		//
+		var  current = $('#area_list').data('obj');
+		var values = ';'+$(current).next('input[type=hidden]').val();
+		var flag = true;
+		if(values!='')
+		{
+			$(obj).parent().find('ul input').each(function(){
+				if(values.indexOf(';'+$(this).val()+';')!=-1)
+				{
+					$(this).attr('checked',true);
+					flag = false;
+				}
+			});
+		}
+		if(flag)$(obj).parent().find('ul input').attr('checked',$(obj).parent().find('>label input').attr('checked'));
+        });
+    }
+    if($(obj).hasClass('open'))
+    {
+        $(obj).removeClass('open');
+        $(obj).addClass('close');
+        $(obj).parent().find('>ul').css('display','');
+    }
+    else
+    {
+        $(obj).removeClass('close');
+        $(obj).addClass('open');
+        $(obj).parent().find('>ul').css('display','none');
+    }
+}
+function select_area(obj)
+{
+	$(obj).parent().parent().find('ul input').attr('checked',obj.checked);
+	var value='';
+	$('#select_area input:checked').each(function (){
+		value += $(this).val()+';';
+	});
+	var  current = $('#area_list').data('obj');
+	$(current).next('input[type=hidden]').val(value);
+}
+function change_area(obj,parent_id)
+{
+	if(obj.checked)
+	{
+		$('#area_'+parent_id).attr('checked','checked');
+		$('#area_'+parent_id).change();
+	}
+	else
+	{
+		if($(obj).parent().parent().parent().find('input:checked').html()==null)
+		{
+			$('#area_'+parent_id).attr('checked','');
+			$('#area_'+parent_id).change();
+		}
+	}
+
+}
+</script>

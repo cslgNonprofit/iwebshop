@@ -1,0 +1,317 @@
+{js:my97date}
+<div class="headbar">
+	<div class="position"><span>会员</span><span>></span><span>会员管理</span><span>></span><span>会员列表</span></div>
+	<div class="operating">
+		<div class="search f_r">
+		<form name="serachuser" action="{url:/}" method="get">
+		<input type='hidden' name='controller' value='member' />
+		<input type='hidden' name='action' value='member_list' />
+			<select class="auto" name="search">
+				<option value="u.username" {if:$search=='u.username'}selected{/if}>用户名</option>
+				<option value="m.true_name" {if:$search=='m.true_name'}selected{/if}>姓名</option>
+				<option value="m.telephone" {if:$search=='m.telephone'}selected{/if}>电话</option>
+				<option value="m.mobile" {if:$search=='m.mobile'}selected{/if}>手机</option>
+				<option value="u.email" {if:$search=='u.email'}selected{/if}>Email</option>
+			</select><input class="small" name="keywords" type="text" value="{$keywords}" /><button class="btn" type="submit"><span class="sch">搜 索</span></button>
+		</form>
+		</div>
+		<a href="javascript:;"><button class="operating_btn" type="button" onclick="window.location='{url:/member/member_edit/}'"><span class="addition">添加会员</span></button></a>
+		<a href="javascript:void(0)" onclick="selectAll('check[]')"><button class="operating_btn" type="button"><span class="sel_all">全选</span></button></a>
+		<a href="javascript:void(0)" onclick="delModel({form:'member_list',msg:'确定要删除所选中的会员吗？<br />删除的会员可以从回收站找回。'})"><button class="operating_btn" type="button"><span class="delete">批量删除</span></button></a>
+		<a href="javascript:void(0)" onclick="remove()"><button class="operating_btn" type="button"><span class="grade">批量编辑</span></button></a>
+		<a href="javascript:;"><button class="operating_btn" type="button" onclick="window.location='{url:/member/recycling/}'"><span class="recycle">回收站</span></button></a>
+		<a href="javascript:void(0)" onclick="filter()"><button class="operating_btn" type="button"><span class="remove">筛选</span></button></a>
+		<a href="javascript:void(0)" onclick="balance_add()"><button class="operating_btn" type="button"><span class="recharge">预付款管理</span></button></a>
+<script type="text/javascript">
+function balance_add()
+{
+	if(checkboxCheck('check[]','请选择要进行预付款操作的用户！'))
+	{
+		art.dialog({
+			id:'balan',
+			title:'预付款管理',
+		    content: '<div class="pop_win clearfix" style="width:400px;padding:5px"><table class="form_table"><col width="120px" /><col /><tr><td class="t_r">请选择：</td><td><select id="typecode" class="middle" onchange="show(this.value)"><option value="1">充值</option><option value="2">退款</option><option value="3">提现</option></select></td></tr><tr id="ord_no" style="display:none;"><td class="t_r">订单号：</td><td><input type="text" id="order_no" maxlength="20" class="middle"/></td></tr><tr><td class="t_r">请输入金额：</td><td><input id="balance" class="small" type="text" maxlength="8"/></td></tr></table></div>',
+		    yesFn: function(){
+		    	var va = $("#typecode").val();
+		    	var order_no = $.trim($('#order_no').val());
+		    	if(va=='2')
+		    	{
+			    	if(order_no=='')
+			    	{
+				    	alert('请输入订单号!');
+				    	return false;
+			    	}
+		    	}
+				var balance = $.trim($('#balance').val());
+				if(balance=='')
+				{
+					alert('请输入金额!');
+					return false;
+				}
+		        //return false; //如果返回false将阻止关闭
+		        var tempUrl = '{url:/member/member_recharge/balance/@balance@/type/@type@/order_no/@order_no@}';
+		        tempUrl     = tempUrl.replace('@balance@',balance);
+		        tempUrl     = tempUrl.replace('@type@',va);
+		        tempUrl     = tempUrl.replace('@order_no@',order_no);
+
+				$("form[name='member_list']").attr('action',tempUrl);
+				formSubmit('member_list')
+		    },
+		    noFn: true //为true等价于function(){}
+		});
+	}
+}
+function show(va)
+{
+	if(va=='2')
+	{
+		$('#ord_no').show();
+	}else{
+		$('#ord_no').hide();
+	}
+}
+</script>
+	</div>
+	<div class="field">
+		<table class="list_table">
+			<col width="30px" />
+			<col width="90px" />
+			<col width="60px" />
+			<col width="80px" />
+			<col width="40px" />
+			<col width="130px"/>
+			<col width="60px" />
+			<col width="60px" />
+			<col width="65px" />
+			<col width="80px" />
+			<col width="60px" />
+			<thead>
+				<tr role="head" id="headth">
+					<th class="t_c">选择</th>
+					<th>用户名</th>
+					<th>会员等级</th>
+					<th>姓名</th>
+					<th>性别</th>
+					<th>Email</th>
+					<th>余额</th>
+					<th>积分</th>
+					<th>注册日期</th>
+					<th>手机</th>
+					<th>操作</th>
+				</tr>
+			</thead>
+		</table>
+	</div>
+</div>
+<form action="{url:/member/member_reclaim}" method="post" name="member_list" onsubmit="return checkboxCheck('check[]','尚未选中任何记录！')">
+<div class="content">
+	<input type="hidden" name="move_group" value="" />
+	<input type="hidden" name="move_point" value="" />
+	<table id="list_table" class="list_table">
+		<tbody id="conth">
+			{set:$page= (isset($_GET['page'])&&(intval($_GET['page'])>0))?intval($_GET['page']):1;}
+			{query: name=member as m join=left join user as u on m.user_id eq u.id left join user_group as gp on m.group_id eq gp.id fields=m.*,u.username,DATE_FORMAT(m.time, '%Y-%m-%d') as time,u.email,gp.group_name where=m.status eq 1 and $where order=m.user_id desc page=$page pagesize=20}
+			<tr>
+				<td class="t_c"><input name="check[]" type="checkbox" value="{$item['user_id']}" /></td>
+				<td title="{$item['username']}">{$item['username']}</td>
+				<td title="{$group[$item['group_id']]}">{$group[$item['group_id']]}</td>
+				<td title="{$item['true_name']}">{$item['true_name']}</td>
+				<td>{if:$item['sex']=='1'}男{else:}女{/if}</td>
+				<td title="{$item['email']}">{$item['email']}</td>
+				<td title="{$item['balance']}">{$item['balance']}</td>
+				<td title="{$item['point']}">{$item['point']}</td>
+				<td title="{$item['time']}">{$item['time']}</td>
+				<td title="{$item['mobile']}">{$item['mobile']}</td>
+				<td><a href="{url:/member/member_edit/uid/$item[user_id]}"><img class="operator" src="{skin:images/admin/icon_edit.gif}" alt="修改" /></a>
+					<a href="javascript:void(0)" onclick="delModel({link:'{url:/member/member_reclaim/check/$item[user_id]}'})"><img class="operator" src="{skin:images/admin/icon_del.gif}" alt="删除" /></a>
+				</td>
+			</tr>
+			{/query}
+		</tbody>
+	</table>
+</div>
+{$query->getPageBar()}
+</form>
+<script language="javascript">
+<!--
+var js_group = {};
+var tpl_group = '<table style="width:250px" class="form_table"><tr><th>会员等级：</th><td><select class="auto" id="removeto">{foreach:items=$group key=$key item=$value}<option value={$key}>{$value}</option>{/foreach}</select></td></tr>'+
+				'	<tr><th>积分：</th><td><input class="tiny" type="text" name="point" value="" /></td></tr>'+
+				'</table>';
+var content_filter = {};
+var tpl_filter =	'<div class="pop_win clearfix" style="width:600px;padding:5px"><form name="form_filter" action="{url:/member/member_filter}" method="post"></form>'+
+					'<table class="form_table"><col width="100px" /><col /><col width="150px" /><tfoot name="filter">'+
+					'		<tr name="menu"><td>添加筛选条件：</td>'+
+					'		<td><select class="auto" name="requirement" onchange="addoption()">'+
+					'				<option value="c">请选择</option>'+
+					'				<option value="group">会员等级</option>'+
+					'				<option value="username">用户名</option>'+
+					'				<option value="truename">姓名</option>'+
+					'				<option value="mobile">手机</option>'+
+					'				<option value="telephone">固定电话</option>'+
+					'				<option value="email">Email</option>'+
+					'				<option value="zip">邮编</option>'+
+					'				<option value="sex">性别</option>'+
+					'				<option value="point">经验值</option>'+
+					'				<option value="regtime">注册日期</option>'+
+					'			</select></td>'+
+					'		<td><a class="blue" href="javascript:void(0)" onclick="del_all_option()" >删除所有筛选条件</a></td>'+
+					'	</tr></tfoot>'+
+					'</table>';
+var tpl_option = new Array();
+tpl_option['group'] =	'	<tr name="group">'+
+						'		<td>会员等级</td>'+
+						'		<td><select class="auto" name="group_key"><option value="eq">等于</option><option value="neq">不等于</option></select><select class="auto" name="group_value">{foreach:items=$group key=$key item=$value}<option value={$key}>{$value}</option>{/foreach}</select></td>'+
+						'		<td><img class="operator" src="{skin:images/admin/icon_del.gif}" alt="删除" onclick="del_option(this)" /></td>'+
+						'	</tr>';
+tpl_option['username'] ='	<tr name="username">'+
+						'		<td>用户名</td>'+
+						'		<td><select class="auto" name="username_key"><option value="eq">等于</option><option value="contain">包含</option></select><input class="middle" type="text" name="username_value" /></td>'+
+						'		<td><img class="operator" src="{skin:images/admin/icon_del.gif}" alt="删除" onclick="del_option(this)" /></td>'+
+						'	</tr>';
+tpl_option['truename'] ='	<tr name="truename">'+
+						'		<td>姓名</td>'+
+						'		<td><select class="auto" name="truename_key"><option value="eq">等于</option><option value="contain">包含</option></select><input class="middle" type="text" name="truename_value" /></td>'+
+						'		<td><img class="operator" src="{skin:images/admin/icon_del.gif}" alt="删除" onclick="del_option(this)" /></td>'+
+						'	</tr>';
+tpl_option['mobile'] =	'	<tr name="mobile">'+
+						'		<td>手机</td>'+
+						'		<td><select class="auto" name="mobile_key"><option value="eq">等于</option><option value="contain">包含</option></select><input class="middle" type="text" name="mobile_value" /></td>'+
+						'		<td><img class="operator" src="{skin:images/admin/icon_del.gif}" alt="删除" onclick="del_option(this)" /></td>'+
+						'	</tr>';
+tpl_option['telephone'] ='	<tr name="telephone">'+
+						'		<td>固定电话</td>'+
+						'		<td><select class="auto" name="telephone_key"><option value="eq">等于</option><option value="contain">包含</option></select><input class="middle" type="text" name="telephone_value" /></td>'+
+						'		<td><img class="operator" src="{skin:images/admin/icon_del.gif}" alt="删除" onclick="del_option(this)" /></td>'+
+						'	</tr>';
+tpl_option['email']	=	'	<tr name="email">'+
+						'		<td>Email</td>'+
+						'		<td><select class="auto" name="email_key"><option value="eq">等于</option><option value="contain">包含</option></select<input class="middle" type="text" name="email_value" />></td>'+
+						'		<td><img class="operator" src="{skin:images/admin/icon_del.gif}" alt="删除" onclick="del_option(this)" /></td>'+
+						'	</tr>';
+tpl_option['zip']	=	'	<tr name="zip">'+
+						'		<td>邮编</td>'+
+						'		<td><select class="auto" name="zip_key"><option value="eq">等于</option><option value="contain">包含</option></select><input class="middle" type="text" name="zip_value" /></td>'+
+						'		<td><img class="operator" src="{skin:images/admin/icon_del.gif}" alt="删除" onclick="del_option(this)" /></td>'+
+						'	</tr>';
+tpl_option['sex']	=	'	<tr name="sex">'+
+						'		<td>性别</td>'+
+						'		<td><select class="auto" name="sex"><option value="-1">请选择</option><option value="1">男</option><option value="2">女</option><option value="9">保密</option></select></td>'+
+						'		<td><img class="operator" src="{skin:images/admin/icon_del.gif}" alt="删除" onclick="del_option(this)" /></td>'+
+						'	</tr>';
+tpl_option['point']	=	'	<tr name="point">'+
+						'		<td>经验值</td>'+
+						'		<td><select class="auto" name="point_key"><option value="gt">大于</option><option value="lt">小于</option><option value="eq">等于</option></select><input class="middle" type="text" name="point_value" /></td>'+
+						'		<td><img class="operator" src="{skin:images/admin/icon_del.gif}" alt="删除" onclick="del_option(this)" /></td>'+
+						'	</tr>';
+tpl_option['regtime'] =	'	<tr name="regtime">'+
+						'		<td>注册日期</td>'+
+						'		<td>开始 <input class="small" type="text" name="regtimeBegin" onfocus="WdatePicker()" /> - 截止 <input class="small" type="text" name="regtimeEnd" onfocus="WdatePicker()" /></td>'+
+						'		<td><img class="operator" src="{skin:images/admin/icon_del.gif}" alt="删除" onclick="del_option(this)" /></td>'+
+						'	</tr>';
+function remove()
+{
+	art.dialog({
+		id: 'remove',
+		title: '修改等级',
+		height: '80px',
+		width: '250px',
+		border: false,
+		content: js_group,
+		tmpl: tpl_group,
+		yesFn:function(){
+			$(":input[name='move_group']").attr("value",$("#removeto option:selected").attr("value"));
+			$(":input[name='move_point']").attr("value",$(":input[name='point']").val());
+			$("form[name='member_list']").attr("action","{url:/member/member_remove/}");
+			$("form[name='member_list']").submit();
+			return false;
+		},
+		noFn: true
+	});
+}
+function filter()
+{
+	art.dialog({
+		id: 'filter',
+		title: '筛选',
+		width: '480px',
+		border: false,
+		content: content_filter,
+		tmpl: tpl_filter,
+		yesFn:function(){
+			var obj = $("select[name='requirement'] option");
+			var queryurl = '';
+			for (var i=1;i<obj.length ;i++)
+			{
+				if ($(obj[i]).attr('disabled')==true)
+				{
+					switch ($(obj[i]).val())
+					{
+						case 'group':
+							queryurl += 'group_key='+$("select[name='group_key']").val()+'&group_value='+$("select[name='group_value']").val()+'&';
+							break;
+						case 'username':
+							queryurl += 'username_key='+$("select[name='username_key']").val()+'&username_value='+$(":input[name='username_value']").val()+'&';
+							break;
+						case 'truename':
+							queryurl += 'truename_key='+$("select[name='truename_key']").val()+'&truename_value='+$(":input[name='truename_value']").val()+'&';
+							break;
+						case 'mobile':
+							queryurl += 'mobile_key='+$("select[name='mobile_key']").val()+'&mobile_value='+$(":input[name='mobile_value']").val()+'&';
+							break;
+						case 'telephone':
+							queryurl += 'telephone_key='+$("select[name='telephone_key']").val()+'&telephone_value='+$(":input[name='telephone_value']").val()+'&';
+							break;
+						case 'email':
+							queryurl += 'email_key='+$("select[name='email_key']").val()+'&email_value='+$(":input[name='email_value']").val()+'&';
+							break;
+						case 'zip':
+							queryurl += 'zip_key='+$("select[name='zip_key']").val()+'&zip_value='+$(":input[name='zip_value']").val()+'&';
+							break;
+						case 'sex':
+							queryurl += 'sex='+$("select[name='sex']").val()+'&';
+							break;
+						case 'point':
+							queryurl += 'point_key='+$("select[name='point_key']").val()+'&point_value='+$(":input[name='point_value']").val()+'&';
+							break;
+						case 'regtime':
+							queryurl += 'regtimeBegin='+$(":input[name='regtimeBegin']").val()+'&regtimeEnd='+$(":input[name='regtimeEnd']").val()+'&';
+					}
+				}
+			}
+			var tempUrl = '{url:/member/member_filter/@queryurl@}';
+			tempUrl     = tempUrl.replace('@queryurl@',queryurl);
+			$("form[name='form_filter']").attr('action',tempUrl);
+			$("form[name='form_filter']").submit();
+			return true;
+		},
+		noFn:true
+	});
+}
+function del_all_option()
+{
+	$("div[name='filter']").children().not("div[name='menu']").each(function(i){
+		$(this).remove();
+	});
+	$("select[name='requirement'] option").each(function(i){
+		$(this).removeAttr('disabled');
+	});
+}
+function del_option(obj)
+{
+	var name = $(obj).parent().parent().attr('name');
+	$("select[name='requirement'] option[value='"+name+"']").removeAttr('disabled');
+	$(obj).parent().parent().remove();
+}
+function addoption()
+{
+	var obj = $("select[name='requirement'] option:selected");
+	if ($("tr[name='"+obj.val()+"']").length<1)
+	{
+		$("tfoot[name='filter']").append(tpl_option[obj.val()]);
+	}
+	obj.attr('disabled',true);
+	$("select[name='requirement'] option:selected").removeAttr('selected');
+}
+//-->
+</script>
